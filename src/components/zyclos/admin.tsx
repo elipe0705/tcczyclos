@@ -35,10 +35,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-muted/70">
       {/* Backdrop for mobile */}
       {open && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden" 
-          onClick={() => setOpen(false)}
-        />
+        <Button variant="ghost" aria-label="Fechar menu administrativo" className="fixed inset-0 z-40 h-full w-full rounded-none bg-background/70 lg:hidden" onClick={() => setOpen(false)} />
       )}
       
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-surface-dark p-5 text-primary-foreground transition-transform lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
@@ -143,7 +140,7 @@ export function Dashboard() {
       
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map(({ label, value, Icon, trend }) => (
-          <div key={label} className="rounded-xl border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
+          <div key={label} className="rounded-lg border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
             <div className="flex justify-between">
               <span className="text-sm font-medium text-muted-foreground">{label}</span>
               <div className="rounded-md bg-primary/10 p-2 text-primary">
@@ -159,7 +156,7 @@ export function Dashboard() {
       </div>
       
       <div className="mt-8 grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-        <div className="rounded-xl border bg-card p-6 shadow-sm">
+        <div className="rounded-lg border bg-card p-6 shadow-sm">
           <h2 className="text-lg font-bold">Crescimento da comunidade</h2>
           <div className="mt-6 h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -183,7 +180,7 @@ export function Dashboard() {
                   tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }}
                 />
                 <Tooltip 
-                  contentStyle={{ borderRadius: '8px', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'var(--popover)', color: 'var(--popover-foreground)' }}
                 />
                 <Area 
                   type="monotone" 
@@ -198,7 +195,7 @@ export function Dashboard() {
           </div>
         </div>
         
-        <div className="rounded-xl border bg-card p-6 shadow-sm">
+        <div className="rounded-lg border bg-card p-6 shadow-sm">
           <h2 className="text-lg font-bold">Atividade recente</h2>
           <div className="mt-6 space-y-6">
             {["Novo anúncio publicado", "Proposta de troca aceita", "Novo usuário cadastrado", "Denúncia recebida"].map((x, i) => (
@@ -367,7 +364,7 @@ export function Reports() {
         } 
       />
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border bg-card p-6 shadow-sm">
+        <div className="rounded-lg border bg-card p-6 shadow-sm">
           <h2 className="text-lg font-bold">Anúncios e usuários</h2>
           <div className="mt-6 h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -385,7 +382,7 @@ export function Reports() {
                   tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }}
                 />
                 <Tooltip 
-                  contentStyle={{ borderRadius: '8px', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'var(--popover)', color: 'var(--popover-foreground)' }}
                 />
                 <Bar dataKey="ads" fill="var(--primary)" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="users" fill="var(--highlight)" radius={[4, 4, 0, 0]} />
@@ -396,7 +393,7 @@ export function Reports() {
         
         <div className="grid gap-4 sm:grid-cols-2">
           {[["Usuários", "+18%"], ["Anúncios", "+24%"], ["Trocas", "+11%"], ["Denúncias", "-6%"]].map(([a, b]) => (
-            <div key={a} className="rounded-xl border bg-card p-6 shadow-sm">
+            <div key={a} className="rounded-lg border bg-card p-6 shadow-sm">
               <p className="text-sm font-medium text-muted-foreground">{a}</p>
               <strong className="mt-3 block font-display text-3xl font-black">{b}</strong>
               <small className="text-muted-foreground">em {period}</small>
@@ -414,7 +411,7 @@ export function AdminSettings() {
   return (
     <>
       <Heading title="Configurações administrativas" desc="Preferências visuais desta demonstração." />
-      <div className="max-w-2xl rounded-xl border bg-card p-8 shadow-sm">
+      <div className="max-w-2xl rounded-lg border bg-card p-8 shadow-sm">
         <div className="divide-y">
           {["Avisos de novas denúncias", "Resumo semanal", "Modo de revisão compacta"].map((x, i) => (
             <label key={x} className="flex cursor-pointer items-center justify-between py-5 transition-colors hover:bg-muted/30">
@@ -433,7 +430,7 @@ export function AdminSettings() {
 
 function DataTable({ headers, rows }: { headers: string[]; rows: ReactNode[][] }) {
   return (
-    <div className="relative overflow-hidden rounded-xl border bg-card shadow-sm">
+    <div className="relative overflow-hidden rounded-lg border bg-card shadow-sm">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead className="bg-muted/50 border-b">
