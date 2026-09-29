@@ -10,33 +10,60 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AnunciosRouteImport } from './routes/anuncios'
+import { Route as AnunciosIndexRouteImport } from './routes/anuncios.index'
+import { Route as AnunciosIdRouteImport } from './routes/anuncios.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnunciosRoute = AnunciosRouteImport.update({
+  id: '/anuncios',
+  path: '/anuncios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnunciosIndexRoute = AnunciosIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AnunciosRoute,
+} as any)
+const AnunciosIdRoute = AnunciosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AnunciosRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/anuncios': typeof AnunciosRouteWithChildren
+  '/anuncios/$id': typeof AnunciosIdRoute
+  '/anuncios/': typeof AnunciosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/anuncios/$id': typeof AnunciosIdRoute
+  '/anuncios': typeof AnunciosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/anuncios': typeof AnunciosRouteWithChildren
+  '/anuncios/$id': typeof AnunciosIdRoute
+  '/anuncios/': typeof AnunciosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/anuncios' | '/anuncios/$id' | '/anuncios/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/anuncios/$id' | '/anuncios'
+  id: '__root__' | '/' | '/anuncios' | '/anuncios/$id' | '/anuncios/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnunciosRoute: typeof AnunciosRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +75,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/anuncios': {
+      id: '/anuncios'
+      path: '/anuncios'
+      fullPath: '/anuncios'
+      preLoaderRoute: typeof AnunciosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/anuncios/': {
+      id: '/anuncios/'
+      path: '/'
+      fullPath: '/anuncios/'
+      preLoaderRoute: typeof AnunciosIndexRouteImport
+      parentRoute: typeof AnunciosRoute
+    }
+    '/anuncios/$id': {
+      id: '/anuncios/$id'
+      path: '/$id'
+      fullPath: '/anuncios/$id'
+      preLoaderRoute: typeof AnunciosIdRouteImport
+      parentRoute: typeof AnunciosRoute
+    }
   }
 }
 
+interface AnunciosRouteChildren {
+  AnunciosIdRoute: typeof AnunciosIdRoute
+  AnunciosIndexRoute: typeof AnunciosIndexRoute
+}
+
+const AnunciosRouteChildren: AnunciosRouteChildren = {
+  AnunciosIdRoute: AnunciosIdRoute,
+  AnunciosIndexRoute: AnunciosIndexRoute,
+}
+
+const AnunciosRouteWithChildren = AnunciosRoute._addFileChildren(
+  AnunciosRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnunciosRoute: AnunciosRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
