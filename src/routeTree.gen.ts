@@ -11,8 +11,19 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AnunciosRouteImport } from './routes/anuncios'
+import { Route as CadastroRouteImport } from './routes/cadastro'
+import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
+import { Route as CriarAnuncioRouteImport } from './routes/criar-anuncio'
+import { Route as FavoritosRouteImport } from './routes/favoritos'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as MensagensRouteImport } from './routes/mensagens'
+import { Route as NotificacoesRouteImport } from './routes/notificacoes'
+import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as TrocasRouteImport } from './routes/trocas'
 import { Route as AnunciosIndexRouteImport } from './routes/anuncios.index'
 import { Route as AnunciosIdRouteImport } from './routes/anuncios.$id'
+import { Route as EditarAnuncioIdRouteImport } from './routes/editar-anuncio.$id'
+import { Route as PerfilUsernameRouteImport } from './routes/perfil.$username'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,6 +33,51 @@ const IndexRoute = IndexRouteImport.update({
 const AnunciosRoute = AnunciosRouteImport.update({
   id: '/anuncios',
   path: '/anuncios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastroRoute = CadastroRouteImport.update({
+  id: '/cadastro',
+  path: '/cadastro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CriarAnuncioRoute = CriarAnuncioRouteImport.update({
+  id: '/criar-anuncio',
+  path: '/criar-anuncio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FavoritosRoute = FavoritosRouteImport.update({
+  id: '/favoritos',
+  path: '/favoritos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MensagensRoute = MensagensRouteImport.update({
+  id: '/mensagens',
+  path: '/mensagens',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificacoesRoute = NotificacoesRouteImport.update({
+  id: '/notificacoes',
+  path: '/notificacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerfilRoute = PerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrocasRoute = TrocasRouteImport.update({
+  id: '/trocas',
+  path: '/trocas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnunciosIndexRoute = AnunciosIndexRouteImport.update({
@@ -34,36 +90,134 @@ const AnunciosIdRoute = AnunciosIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AnunciosRoute,
 } as any)
+const EditarAnuncioIdRoute = EditarAnuncioIdRouteImport.update({
+  id: '/editar-anuncio/$id',
+  path: '/editar-anuncio/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerfilUsernameRoute = PerfilUsernameRouteImport.update({
+  id: '/$username',
+  path: '/$username',
+  getParentRoute: () => PerfilRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/anuncios': typeof AnunciosRouteWithChildren
+  '/cadastro': typeof CadastroRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/criar-anuncio': typeof CriarAnuncioRoute
+  '/favoritos': typeof FavoritosRoute
+  '/login': typeof LoginRoute
+  '/mensagens': typeof MensagensRoute
+  '/notificacoes': typeof NotificacoesRoute
+  '/perfil': typeof PerfilRouteWithChildren
+  '/trocas': typeof TrocasRoute
   '/anuncios/$id': typeof AnunciosIdRoute
+  '/editar-anuncio/$id': typeof EditarAnuncioIdRoute
+  '/perfil/$username': typeof PerfilUsernameRoute
   '/anuncios/': typeof AnunciosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cadastro': typeof CadastroRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/criar-anuncio': typeof CriarAnuncioRoute
+  '/favoritos': typeof FavoritosRoute
+  '/login': typeof LoginRoute
+  '/mensagens': typeof MensagensRoute
+  '/notificacoes': typeof NotificacoesRoute
+  '/perfil': typeof PerfilRouteWithChildren
+  '/trocas': typeof TrocasRoute
   '/anuncios/$id': typeof AnunciosIdRoute
+  '/editar-anuncio/$id': typeof EditarAnuncioIdRoute
+  '/perfil/$username': typeof PerfilUsernameRoute
   '/anuncios': typeof AnunciosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/anuncios': typeof AnunciosRouteWithChildren
+  '/cadastro': typeof CadastroRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/criar-anuncio': typeof CriarAnuncioRoute
+  '/favoritos': typeof FavoritosRoute
+  '/login': typeof LoginRoute
+  '/mensagens': typeof MensagensRoute
+  '/notificacoes': typeof NotificacoesRoute
+  '/perfil': typeof PerfilRouteWithChildren
+  '/trocas': typeof TrocasRoute
   '/anuncios/$id': typeof AnunciosIdRoute
+  '/editar-anuncio/$id': typeof EditarAnuncioIdRoute
+  '/perfil/$username': typeof PerfilUsernameRoute
   '/anuncios/': typeof AnunciosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/anuncios' | '/anuncios/$id' | '/anuncios/'
+  fullPaths:
+    | '/'
+    | '/anuncios'
+    | '/cadastro'
+    | '/configuracoes'
+    | '/criar-anuncio'
+    | '/favoritos'
+    | '/login'
+    | '/mensagens'
+    | '/notificacoes'
+    | '/perfil'
+    | '/trocas'
+    | '/anuncios/$id'
+    | '/editar-anuncio/$id'
+    | '/perfil/$username'
+    | '/anuncios/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/anuncios/$id' | '/anuncios'
-  id: '__root__' | '/' | '/anuncios' | '/anuncios/$id' | '/anuncios/'
+  to:
+    | '/'
+    | '/cadastro'
+    | '/configuracoes'
+    | '/criar-anuncio'
+    | '/favoritos'
+    | '/login'
+    | '/mensagens'
+    | '/notificacoes'
+    | '/perfil'
+    | '/trocas'
+    | '/anuncios/$id'
+    | '/editar-anuncio/$id'
+    | '/perfil/$username'
+    | '/anuncios'
+  id:
+    | '__root__'
+    | '/'
+    | '/anuncios'
+    | '/cadastro'
+    | '/configuracoes'
+    | '/criar-anuncio'
+    | '/favoritos'
+    | '/login'
+    | '/mensagens'
+    | '/notificacoes'
+    | '/perfil'
+    | '/trocas'
+    | '/anuncios/$id'
+    | '/editar-anuncio/$id'
+    | '/perfil/$username'
+    | '/anuncios/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnunciosRoute: typeof AnunciosRouteWithChildren
+  CadastroRoute: typeof CadastroRoute
+  ConfiguracoesRoute: typeof ConfiguracoesRoute
+  CriarAnuncioRoute: typeof CriarAnuncioRoute
+  FavoritosRoute: typeof FavoritosRoute
+  LoginRoute: typeof LoginRoute
+  MensagensRoute: typeof MensagensRoute
+  NotificacoesRoute: typeof NotificacoesRoute
+  PerfilRoute: typeof PerfilRouteWithChildren
+  TrocasRoute: typeof TrocasRoute
+  EditarAnuncioIdRoute: typeof EditarAnuncioIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +236,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnunciosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cadastro': {
+      id: '/cadastro'
+      path: '/cadastro'
+      fullPath: '/cadastro'
+      preLoaderRoute: typeof CadastroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/configuracoes': {
+      id: '/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof ConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/criar-anuncio': {
+      id: '/criar-anuncio'
+      path: '/criar-anuncio'
+      fullPath: '/criar-anuncio'
+      preLoaderRoute: typeof CriarAnuncioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/favoritos': {
+      id: '/favoritos'
+      path: '/favoritos'
+      fullPath: '/favoritos'
+      preLoaderRoute: typeof FavoritosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mensagens': {
+      id: '/mensagens'
+      path: '/mensagens'
+      fullPath: '/mensagens'
+      preLoaderRoute: typeof MensagensRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notificacoes': {
+      id: '/notificacoes'
+      path: '/notificacoes'
+      fullPath: '/notificacoes'
+      preLoaderRoute: typeof NotificacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perfil': {
+      id: '/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof PerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trocas': {
+      id: '/trocas'
+      path: '/trocas'
+      fullPath: '/trocas'
+      preLoaderRoute: typeof TrocasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/anuncios/': {
       id: '/anuncios/'
       path: '/'
@@ -95,6 +312,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/anuncios/$id'
       preLoaderRoute: typeof AnunciosIdRouteImport
       parentRoute: typeof AnunciosRoute
+    }
+    '/editar-anuncio/$id': {
+      id: '/editar-anuncio/$id'
+      path: '/editar-anuncio/$id'
+      fullPath: '/editar-anuncio/$id'
+      preLoaderRoute: typeof EditarAnuncioIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perfil/$username': {
+      id: '/perfil/$username'
+      path: '/$username'
+      fullPath: '/perfil/$username'
+      preLoaderRoute: typeof PerfilUsernameRouteImport
+      parentRoute: typeof PerfilRoute
     }
   }
 }
@@ -113,9 +344,30 @@ const AnunciosRouteWithChildren = AnunciosRoute._addFileChildren(
   AnunciosRouteChildren,
 )
 
+interface PerfilRouteChildren {
+  PerfilUsernameRoute: typeof PerfilUsernameRoute
+}
+
+const PerfilRouteChildren: PerfilRouteChildren = {
+  PerfilUsernameRoute: PerfilUsernameRoute,
+}
+
+const PerfilRouteWithChildren =
+  PerfilRoute._addFileChildren(PerfilRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnunciosRoute: AnunciosRouteWithChildren,
+  CadastroRoute: CadastroRoute,
+  ConfiguracoesRoute: ConfiguracoesRoute,
+  CriarAnuncioRoute: CriarAnuncioRoute,
+  FavoritosRoute: FavoritosRoute,
+  LoginRoute: LoginRoute,
+  MensagensRoute: MensagensRoute,
+  NotificacoesRoute: NotificacoesRoute,
+  PerfilRoute: PerfilRouteWithChildren,
+  TrocasRoute: TrocasRoute,
+  EditarAnuncioIdRoute: EditarAnuncioIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Bell, Heart, Menu, MessageCircle, Plus, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,11 +15,14 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const { favorites, toast } = useApp();
+  const pathname = useRouterState({ select: state => state.location.pathname });
+  const standalone = pathname === "/login" || pathname === "/cadastro" || pathname.startsWith("/admin");
   function submit(event: React.FormEvent) {
     event.preventDefault();
     void navigate({ to: "/anuncios", search: search ? { q: search } : {} });
     setOpen(false);
   }
+  if (standalone) return <div className="min-h-screen bg-background text-foreground">{children}{toast && <div role="status" className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-foreground px-5 py-3 text-sm font-semibold text-background shadow-2xl">{toast}</div>}</div>;
   return <div className="min-h-screen bg-background text-foreground">
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
       <div className="mx-auto flex h-18 max-w-7xl items-center gap-4 px-4 sm:px-6">
