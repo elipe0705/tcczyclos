@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Bell, Camera, Check, Eye, EyeOff, Heart, ImagePlus, Leaf, Lock, Mail, MessageCircle, Plus, Send, Settings, Shield, Star, Trash2, Upload, User, UserPlus } from "lucide-react";
+import { ArrowLeft, Bell, Camera, Check, CheckCircle2, Eye, EyeOff, Heart, ImagePlus, Leaf, LoaderCircle, Lock, Mail, MessageCircle, Plus, Recycle, Send, Settings, Shield, Sparkles, Star, Trash2, Upload, User, UserPlus } from "lucide-react";
+import { z } from "zod";
 import { Brand } from "./brand";
 import { Page } from "./page";
 import { ProductCard } from "./product-card";
@@ -10,13 +11,86 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
+const loginSchema = z.object({
+  email: z.string().trim().email("Digite um e-mail válido.").max(255),
+  password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres.").max(72),
+});
+
+const signupSchema = loginSchema.extend({
+  name: z.string().trim().min(2, "Digite seu nome completo.").max(100),
+  username: z.string().trim().min(3, "O nome de usuário deve ter ao menos 3 caracteres.").max(30).regex(/^[a-zA-Z0-9._]+$/, "Use apenas letras, números, ponto ou sublinhado."),
+  confirm: z.string(),
+}).refine((data) => data.password === data.confirm, { message: "As senhas não coincidem.", path: ["confirm"] });
 
 export function AuthPage({ signup = false }: { signup?: boolean }) {
-  const navigate = useNavigate(); const [show, setShow] = useState(false); const [error, setError] = useState("");
-  function submit(e: React.FormEvent<HTMLFormElement>) { e.preventDefault(); const form = new FormData(e.currentTarget); if (!form.get("email") || !form.get("password")) { setError("Preencha os campos obrigatórios."); return; } void navigate({ to: "/" }); }
-  return <div className="grid min-h-[calc(100vh-4.5rem)] place-items-center bg-muted px-4 py-10"><div className="w-full max-w-md rounded-lg border bg-card p-6 shadow-xl sm:p-9"><div className="text-center"><Brand /><h1 className="mt-7 font-display text-2xl font-extrabold">{signup ? "Crie sua conta" : "Bem-vindo de volta"}</h1><p className="mt-2 text-sm text-muted-foreground">Moda circular começa com boas conexões.</p></div><form className="mt-7 grid gap-4" onSubmit={submit}>{signup && <><Field label="Nome completo" name="name" icon={<User />} /><Field label="Nome de usuário" name="username" icon={<UserPlus />} /><label className="text-sm font-semibold">Foto de perfil<span className="mt-2 flex h-12 items-center gap-2 rounded-md border border-dashed px-3 text-muted-foreground"><Camera className="size-4" /> Escolher foto<input className="sr-only" type="file" accept="image/*" /></span></label></>}<Field label="E-mail" name="email" type="email" icon={<Mail />} /><label className="text-sm font-semibold">Senha<div className="relative mt-2"><Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input name="password" type={show ? "text" : "password"} className="pl-9 pr-10" /><button type="button" onClick={() => setShow(!show)} aria-label="Mostrar ou ocultar senha" className="absolute right-3 top-1/2 -translate-y-1/2">{show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}</button></div></label>{signup && <Field label="Confirmar senha" name="confirm" type="password" icon={<Lock />} />}{signup ? <label className="flex items-start gap-2 text-xs text-muted-foreground"><input required type="checkbox" className="mt-0.5 accent-primary" /> Aceito os termos de uso e a política de privacidade.</label> : <div className="flex justify-between text-xs"><label className="flex gap-2"><input type="checkbox" className="accent-primary" /> Lembrar de mim</label><button type="button" className="font-semibold text-primary">Esqueci minha senha</button></div>}{error && <p className="text-sm text-destructive">{error}</p>}<Button size="lg" type="submit">{signup ? "Criar conta" : "Entrar"}</Button></form><div className="my-5 flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />ou<span className="h-px flex-1 bg-border" /></div><Button variant="outline" className="w-full" onClick={() => void navigate({ to: "/" })}>Continuar com Google</Button><p className="mt-6 text-center text-sm text-muted-foreground">{signup ? "Já tem uma conta?" : "Ainda não tem conta?"} <Link className="font-bold text-primary" to={signup ? "/login" : "/cadastro"}>{signup ? "Entrar" : "Cadastre-se"}</Link></p></div></div>;
+  const navigate = useNavigate();
+  const { signIn, signUp, notify } = useApp();
+  const [show, setShow] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [photo, setPhoto] = useState<string | null>(null);
+  const photoUrl = useRef<string | null>(null);
+
+  function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError("");
+    const form = new FormData(e.currentTarget);
+    const values = {
+      email: String(form.get("email") ?? ""), password: String(form.get("password") ?? ""),
+      ...(signup ? { name: String(form.get("name") ?? ""), username: String(form.get("username") ?? ""), confirm: String(form.get("confirm") ?? "") } : {}),
+    };
+    if (signup) {
+      const result = signupSchema.safeParse(values);
+      if (!result.success) { setError(result.error.issues[0]?.message ?? "Revise os dados informados."); return; }
+      setLoading(true);
+      window.setTimeout(() => { signUp({ name: result.data.name, username: result.data.username, email: result.data.email, ...(photo ? { avatarUrl: photo } : {}) }); notify("Conta criada. Bem-vindo à ZYCLOS!"); void navigate({ to: "/" }); }, 650);
+      return;
+    }
+    const result = loginSchema.safeParse(values);
+    if (!result.success) { setError(result.error.issues[0]?.message ?? "Revise os dados informados."); return; }
+    setLoading(true);
+    window.setTimeout(() => { signIn(result.data.email); notify("Você entrou na sua conta."); void navigate({ to: "/" }); }, 650);
+  }
+
+  function choosePhoto(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (photoUrl.current) URL.revokeObjectURL(photoUrl.current);
+    photoUrl.current = URL.createObjectURL(file);
+    setPhoto(photoUrl.current);
+  }
+
+  function googleDemo() {
+    signIn("conta.google@exemplo.com");
+    notify("Entrada com Google simulada com sucesso.");
+    void navigate({ to: "/" });
+  }
+
+  return <div className="grid min-h-screen bg-background lg:grid-cols-[0.9fr_1.1fr]">
+    <section className="relative hidden overflow-hidden border-r border-border bg-surface-dark p-12 lg:flex lg:flex-col lg:justify-between">
+      <Brand />
+      <div className="relative max-w-lg"><span className="mb-6 grid size-12 place-items-center rounded-md bg-highlight text-highlight-foreground"><Recycle /></span><p className="font-display text-4xl font-extrabold leading-tight">Seu estilo merece<br />uma nova história.</p><p className="mt-5 max-w-md text-muted-foreground">Entre na comunidade que transforma peças paradas em novas possibilidades.</p></div>
+      <div className="grid grid-cols-3 gap-5 border-t border-border pt-6 text-sm"><p><strong className="block text-highlight">Compre</strong>com propósito</p><p><strong className="block text-secondary">Venda</strong>sem complicação</p><p><strong className="block text-highlight">Troque</strong>com liberdade</p></div>
+    </section>
+    <section className="flex min-h-screen items-center justify-center px-4 py-10 sm:px-8">
+      <div className="w-full max-w-md"><div className="mb-8 lg:hidden"><Brand /></div><p className="text-xs font-extrabold uppercase text-highlight">Sua conta ZYCLOS</p><h1 className="mt-2 font-display text-3xl font-extrabold">{signup ? "Crie sua conta" : "Bem-vindo de volta"}</h1><p className="mt-2 text-sm text-muted-foreground">{signup ? "Comece a circular seu estilo hoje." : "Acesse seus anúncios, trocas e conversas."}</p>
+        <form className="mt-8 grid gap-4" onSubmit={submit} noValidate>{signup && <><Field label="Nome completo" name="name" autoComplete="name" icon={<User />} /><Field label="Nome de usuário" name="username" autoComplete="username" icon={<UserPlus />} /><label className="text-sm font-semibold">Foto de perfil <span className="font-normal text-muted-foreground">(opcional)</span><span className="mt-2 flex h-14 cursor-pointer items-center gap-3 rounded-md border border-dashed bg-card px-3 text-muted-foreground hover:border-secondary">{photo ? <img src={photo} alt="Prévia da foto de perfil" className="size-9 rounded-full object-cover" /> : <Camera className="size-4" />} {photo ? "Foto selecionada" : "Escolher foto"}<input className="sr-only" type="file" accept="image/png,image/jpeg,image/webp" onChange={choosePhoto} /></span></label></>}<Field label="E-mail" name="email" type="email" autoComplete="email" icon={<Mail />} /><label className="text-sm font-semibold">Senha<div className="relative mt-2"><Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input required name="password" type={show ? "text" : "password"} autoComplete={signup ? "new-password" : "current-password"} className="h-11 pl-9 pr-11" /><Button type="button" onClick={() => setShow(!show)} aria-label={show ? "Ocultar senha" : "Mostrar senha"} variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2">{show ? <EyeOff /> : <Eye />}</Button></div>{signup && <span className="mt-1.5 block text-xs font-normal text-muted-foreground">Use 8 ou mais caracteres.</span>}</label>{signup && <Field label="Confirmar senha" name="confirm" type={show ? "text" : "password"} autoComplete="new-password" icon={<Lock />} />}{signup ? <label className="flex items-start gap-2 text-xs text-muted-foreground"><input required name="terms" type="checkbox" className="mt-0.5 accent-primary" /> Aceito os termos de uso e a política de privacidade.</label> : <div className="flex items-center justify-between gap-3 text-xs"><label className="flex items-center gap-2"><input name="remember" type="checkbox" className="accent-primary" /> Lembrar de mim</label><ForgotPassword /></div>}{error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}<Button size="lg" type="submit" disabled={loading}>{loading ? <><LoaderCircle className="animate-spin" />Aguarde...</> : signup ? "Criar conta" : "Entrar"}</Button></form>
+        <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />ou<span className="h-px flex-1 bg-border" /></div><Button type="button" variant="outline" className="w-full" onClick={googleDemo}><Sparkles /> Continuar com Google <span className="text-xs text-muted-foreground">(demonstração)</span></Button><p className="mt-6 text-center text-sm text-muted-foreground">{signup ? "Já tem uma conta?" : "Ainda não tem conta?"} <Link className="font-bold text-secondary" to={signup ? "/login" : "/cadastro"}>{signup ? "Entrar" : "Cadastre-se"}</Link></p>
+      </div>
+    </section>
+  </div>;
 }
-function Field({ label, name, type = "text", icon }: { label: string; name: string; type?: string; icon?: React.ReactNode }) { return <label className="text-sm font-semibold">{label}<div className="relative mt-2">{icon && <span className="absolute left-3 top-1/2 [&>svg]:size-4 -translate-y-1/2 text-muted-foreground">{icon}</span>}<Input name={name} type={type} className={icon ? "pl-9" : ""} /></div></label>; }
+function Field({ label, name, type = "text", autoComplete, icon }: { label: string; name: string; type?: string; autoComplete?: string; icon?: React.ReactNode }) { return <label className="text-sm font-semibold">{label}<div className="relative mt-2">{icon && <span className="absolute left-3 top-1/2 [&>svg]:size-4 -translate-y-1/2 text-muted-foreground">{icon}</span>}<Input required name={name} type={type} autoComplete={autoComplete} className={`h-11 ${icon ? "pl-9" : ""}`} /></div></label>; }
+
+function ForgotPassword() {
+  const [email, setEmail] = useState("");
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+  function recover() { const result = z.string().trim().email("Digite um e-mail válido.").safeParse(email); if (!result.success) { setError(result.error.issues[0]?.message ?? "E-mail inválido."); return; } setError(""); setSent(true); }
+  return <Dialog onOpenChange={(open) => { if (!open) { setSent(false); setError(""); } }}><DialogTrigger asChild><Button type="button" variant="link" className="h-auto p-0 text-xs text-secondary">Esqueci minha senha</Button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>Recuperar senha</DialogTitle><DialogDescription>Informe seu e-mail para simular o envio das instruções de recuperação.</DialogDescription></DialogHeader>{sent ? <div role="status" className="rounded-md border bg-accent p-5 text-center"><CheckCircle2 className="mx-auto mb-3 size-8 text-secondary" /><strong className="block">Instruções simuladas enviadas</strong><p className="mt-1 text-sm text-muted-foreground">Nenhum e-mail real foi enviado nesta versão.</p></div> : <div className="grid gap-4"><label className="text-sm font-semibold">E-mail da conta<div className="relative mt-2"><Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input aria-label="E-mail para recuperação" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-11 pl-9" /></div></label>{error && <p className="text-sm text-destructive">{error}</p>}<Button type="button" onClick={recover}>Enviar instruções</Button></div>}</DialogContent></Dialog>;
+}
 
 export function ProfilePage() { const [following, setFollowing] = useState(false); return <Page title="Lívia Rocha" eyebrow="@liviar · desde março de 2024" actions={<div className="flex gap-2"><Button variant={following ? "outline" : "default"} onClick={() => setFollowing(!following)}><UserPlus />{following ? "Seguindo" : "Seguir"}</Button><Button variant="outline" asChild><Link to="/mensagens"><MessageCircle />Chat</Link></Button></div>}><div className="mb-8 grid gap-6 md:grid-cols-[160px_1fr]"><div className="grid size-36 place-items-center rounded-full bg-secondary font-display text-5xl font-black text-secondary-foreground">LR</div><div><p className="max-w-xl text-muted-foreground">Apaixonada por garimpos, peças atemporais e novas formas de consumir moda. Todas as peças são cuidadas com carinho.</p><div className="mt-6 flex flex-wrap gap-7 text-sm">{[["4,8", "Avaliação"], ["18", "Anúncios"], ["328", "Seguidores"], ["146", "Seguindo"]].map(([n,l]) => <div key={l}><strong className="block font-display text-xl">{n}</strong><span className="text-muted-foreground">{l}</span></div>)}</div></div></div><Tabs defaultValue="ads"><TabsList><TabsTrigger value="ads">Anúncios</TabsTrigger><TabsTrigger value="reviews">Avaliações</TabsTrigger><TabsTrigger value="about">Sobre</TabsTrigger></TabsList><TabsContent value="ads" className="mt-7"><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{products.slice(0,4).map(p => <ProductCard key={p.id} product={p} />)}</div></TabsContent><TabsContent value="reviews" className="mt-7"><div className="grid gap-4">{reviews.map(r => <article key={r.name} className="rounded-lg border bg-card p-5"><div className="flex justify-between"><strong>{r.name}</strong><span className="text-xs text-muted-foreground">{r.date}</span></div><p className="my-2 text-highlight">{"★".repeat(r.rating)}</p><p className="text-sm text-muted-foreground">{r.text}</p></article>)}</div></TabsContent><TabsContent value="about" className="mt-7"><div className="max-w-2xl rounded-lg bg-muted p-6"><h2 className="font-display text-xl font-bold">Sobre Lívia</h2><p className="mt-3 text-muted-foreground">São Paulo, SP · Responde normalmente em até uma hora. Prefere entregas em locais públicos ou envio combinado.</p></div></TabsContent></Tabs></Page>; }
 

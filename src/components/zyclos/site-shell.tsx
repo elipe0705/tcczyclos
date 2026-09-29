@@ -1,10 +1,11 @@
 import { useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Bell, Heart, Menu, MessageCircle, Plus, Search, X } from "lucide-react";
+import { Bell, Heart, LogIn, LogOut, Menu, MessageCircle, Plus, Search, Settings, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Brand } from "./brand";
 import { useApp } from "@/context/app-context";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const links = [
   ["/", "Início"], ["/anuncios", "Anúncios"], ["/trocas", "Trocas"], ["/mensagens", "Mensagens"],
@@ -14,7 +15,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
-  const { favorites, toast } = useApp();
+  const { favorites, toast, user, signOut, notify } = useApp();
   const pathname = useRouterState({ select: state => state.location.pathname });
   const standalone = pathname === "/login" || pathname === "/cadastro" || pathname.startsWith("/admin");
   function submit(event: React.FormEvent) {
@@ -22,6 +23,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
     void navigate({ to: "/anuncios", search: search ? { q: search } : {} });
     setOpen(false);
   }
+  function handleSignOut() { signOut(); notify("Você saiu da sua conta."); void navigate({ to: "/" }); }
   if (standalone) return <div className="min-h-screen bg-background text-foreground">{children}{toast && <div role="status" className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-foreground px-5 py-3 text-sm font-semibold text-background shadow-2xl">{toast}</div>}</div>;
   return <div className="min-h-screen bg-background text-foreground">
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
@@ -37,7 +39,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
         <div className="hidden items-center gap-1 md:flex">
           <Button variant="ghost" size="icon" asChild><Link to="/favoritos" aria-label={`Favoritos: ${favorites.length}`}><Heart /><span className="sr-only">Favoritos</span></Link></Button>
           <Button variant="ghost" size="icon" asChild><Link to="/notificacoes" aria-label="Notificações"><Bell /></Link></Button>
-          <Button variant="outline" size="sm" asChild><Link to="/perfil">Perfil</Link></Button>
+          {user ? <DropdownMenu><DropdownMenuTrigger asChild><Button variant="outline" size="sm"><span className="grid size-6 place-items-center rounded-full bg-primary text-xs text-primary-foreground">{user.name.charAt(0).toUpperCase()}</span>{user.name.split(" ")[0]}</Button></DropdownMenuTrigger><DropdownMenuContent align="end" className="w-56"><DropdownMenuLabel><span className="block">{user.name}</span><span className="block truncate text-xs font-normal text-muted-foreground">{user.email}</span></DropdownMenuLabel><DropdownMenuSeparator /><DropdownMenuItem asChild><Link to="/perfil"><User />Meu perfil</Link></DropdownMenuItem><DropdownMenuItem asChild><Link to="/configuracoes"><Settings />Configurações</Link></DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem onSelect={handleSignOut} className="text-destructive"><LogOut />Sair</DropdownMenuItem></DropdownMenuContent></DropdownMenu> : <Button variant="outline" size="sm" asChild><Link to="/login"><LogIn /> Entrar</Link></Button>}
           <Button size="sm" asChild><Link to="/criar-anuncio"><Plus /> Anunciar</Link></Button>
         </div>
         <Button className="ml-auto md:hidden" variant="ghost" size="icon" onClick={() => setOpen(!open)} aria-label="Abrir menu">{open ? <X /> : <Menu />}</Button>
@@ -47,7 +49,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
         <nav className="grid gap-1">{links.map(([to, label]) => <Link key={to} to={to} onClick={() => setOpen(false)} className="rounded-md px-3 py-3 font-semibold hover:bg-muted">{label}</Link>)}
           <Link to="/favoritos" onClick={() => setOpen(false)} className="rounded-md px-3 py-3 font-semibold">Favoritos ({favorites.length})</Link>
           <Link to="/notificacoes" onClick={() => setOpen(false)} className="rounded-md px-3 py-3 font-semibold">Notificações</Link>
-          <Link to="/perfil" onClick={() => setOpen(false)} className="rounded-md px-3 py-3 font-semibold">Perfil</Link>
+          {user ? <><Link to="/perfil" onClick={() => setOpen(false)} className="rounded-md px-3 py-3 font-semibold">{user.name}</Link><Button variant="ghost" className="justify-start" onClick={() => { setOpen(false); handleSignOut(); }}><LogOut /> Sair</Button></> : <Button variant="outline" asChild><Link to="/login" onClick={() => setOpen(false)}><LogIn /> Entrar</Link></Button>}
           <Button asChild className="mt-2"><Link to="/criar-anuncio" onClick={() => setOpen(false)}><Plus /> Criar anúncio</Link></Button>
         </nav>
       </div>}
