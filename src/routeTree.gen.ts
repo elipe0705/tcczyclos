@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AnunciosRouteImport } from './routes/anuncios'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
@@ -20,6 +21,13 @@ import { Route as MensagensRouteImport } from './routes/mensagens'
 import { Route as NotificacoesRouteImport } from './routes/notificacoes'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as TrocasRouteImport } from './routes/trocas'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAnunciosRouteImport } from './routes/admin.anuncios'
+import { Route as AdminCategoriasRouteImport } from './routes/admin.categorias'
+import { Route as AdminConfiguracoesRouteImport } from './routes/admin.configuracoes'
+import { Route as AdminDenunciasRouteImport } from './routes/admin.denuncias'
+import { Route as AdminRelatoriosRouteImport } from './routes/admin.relatorios'
+import { Route as AdminUsuariosRouteImport } from './routes/admin.usuarios'
 import { Route as AnunciosIndexRouteImport } from './routes/anuncios.index'
 import { Route as AnunciosIdRouteImport } from './routes/anuncios.$id'
 import { Route as EditarAnuncioIdRouteImport } from './routes/editar-anuncio.$id'
@@ -28,6 +36,11 @@ import { Route as PerfilUsernameRouteImport } from './routes/perfil.$username'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnunciosRoute = AnunciosRouteImport.update({
@@ -80,6 +93,41 @@ const TrocasRoute = TrocasRouteImport.update({
   path: '/trocas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAnunciosRoute = AdminAnunciosRouteImport.update({
+  id: '/anuncios',
+  path: '/anuncios',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCategoriasRoute = AdminCategoriasRouteImport.update({
+  id: '/categorias',
+  path: '/categorias',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminConfiguracoesRoute = AdminConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDenunciasRoute = AdminDenunciasRouteImport.update({
+  id: '/denuncias',
+  path: '/denuncias',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRelatoriosRoute = AdminRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminUsuariosRoute = AdminUsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AnunciosIndexRoute = AnunciosIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -103,6 +151,7 @@ const PerfilUsernameRoute = PerfilUsernameRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/anuncios': typeof AnunciosRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -113,9 +162,16 @@ export interface FileRoutesByFullPath {
   '/notificacoes': typeof NotificacoesRoute
   '/perfil': typeof PerfilRouteWithChildren
   '/trocas': typeof TrocasRoute
+  '/admin/anuncios': typeof AdminAnunciosRoute
+  '/admin/categorias': typeof AdminCategoriasRoute
+  '/admin/configuracoes': typeof AdminConfiguracoesRoute
+  '/admin/denuncias': typeof AdminDenunciasRoute
+  '/admin/relatorios': typeof AdminRelatoriosRoute
+  '/admin/usuarios': typeof AdminUsuariosRoute
   '/anuncios/$id': typeof AnunciosIdRoute
   '/editar-anuncio/$id': typeof EditarAnuncioIdRoute
   '/perfil/$username': typeof PerfilUsernameRoute
+  '/admin/': typeof AdminIndexRoute
   '/anuncios/': typeof AnunciosIndexRoute
 }
 export interface FileRoutesByTo {
@@ -129,14 +185,22 @@ export interface FileRoutesByTo {
   '/notificacoes': typeof NotificacoesRoute
   '/perfil': typeof PerfilRouteWithChildren
   '/trocas': typeof TrocasRoute
+  '/admin/anuncios': typeof AdminAnunciosRoute
+  '/admin/categorias': typeof AdminCategoriasRoute
+  '/admin/configuracoes': typeof AdminConfiguracoesRoute
+  '/admin/denuncias': typeof AdminDenunciasRoute
+  '/admin/relatorios': typeof AdminRelatoriosRoute
+  '/admin/usuarios': typeof AdminUsuariosRoute
   '/anuncios/$id': typeof AnunciosIdRoute
   '/editar-anuncio/$id': typeof EditarAnuncioIdRoute
   '/perfil/$username': typeof PerfilUsernameRoute
+  '/admin': typeof AdminIndexRoute
   '/anuncios': typeof AnunciosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/anuncios': typeof AnunciosRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -147,15 +211,23 @@ export interface FileRoutesById {
   '/notificacoes': typeof NotificacoesRoute
   '/perfil': typeof PerfilRouteWithChildren
   '/trocas': typeof TrocasRoute
+  '/admin/anuncios': typeof AdminAnunciosRoute
+  '/admin/categorias': typeof AdminCategoriasRoute
+  '/admin/configuracoes': typeof AdminConfiguracoesRoute
+  '/admin/denuncias': typeof AdminDenunciasRoute
+  '/admin/relatorios': typeof AdminRelatoriosRoute
+  '/admin/usuarios': typeof AdminUsuariosRoute
   '/anuncios/$id': typeof AnunciosIdRoute
   '/editar-anuncio/$id': typeof EditarAnuncioIdRoute
   '/perfil/$username': typeof PerfilUsernameRoute
+  '/admin/': typeof AdminIndexRoute
   '/anuncios/': typeof AnunciosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/anuncios'
     | '/cadastro'
     | '/configuracoes'
@@ -166,9 +238,16 @@ export interface FileRouteTypes {
     | '/notificacoes'
     | '/perfil'
     | '/trocas'
+    | '/admin/anuncios'
+    | '/admin/categorias'
+    | '/admin/configuracoes'
+    | '/admin/denuncias'
+    | '/admin/relatorios'
+    | '/admin/usuarios'
     | '/anuncios/$id'
     | '/editar-anuncio/$id'
     | '/perfil/$username'
+    | '/admin/'
     | '/anuncios/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -182,13 +261,21 @@ export interface FileRouteTypes {
     | '/notificacoes'
     | '/perfil'
     | '/trocas'
+    | '/admin/anuncios'
+    | '/admin/categorias'
+    | '/admin/configuracoes'
+    | '/admin/denuncias'
+    | '/admin/relatorios'
+    | '/admin/usuarios'
     | '/anuncios/$id'
     | '/editar-anuncio/$id'
     | '/perfil/$username'
+    | '/admin'
     | '/anuncios'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/anuncios'
     | '/cadastro'
     | '/configuracoes'
@@ -199,14 +286,22 @@ export interface FileRouteTypes {
     | '/notificacoes'
     | '/perfil'
     | '/trocas'
+    | '/admin/anuncios'
+    | '/admin/categorias'
+    | '/admin/configuracoes'
+    | '/admin/denuncias'
+    | '/admin/relatorios'
+    | '/admin/usuarios'
     | '/anuncios/$id'
     | '/editar-anuncio/$id'
     | '/perfil/$username'
+    | '/admin/'
     | '/anuncios/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AnunciosRoute: typeof AnunciosRouteWithChildren
   CadastroRoute: typeof CadastroRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
@@ -227,6 +322,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/anuncios': {
@@ -299,6 +401,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrocasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/anuncios': {
+      id: '/admin/anuncios'
+      path: '/anuncios'
+      fullPath: '/admin/anuncios'
+      preLoaderRoute: typeof AdminAnunciosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/categorias': {
+      id: '/admin/categorias'
+      path: '/categorias'
+      fullPath: '/admin/categorias'
+      preLoaderRoute: typeof AdminCategoriasRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/configuracoes': {
+      id: '/admin/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/admin/configuracoes'
+      preLoaderRoute: typeof AdminConfiguracoesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/denuncias': {
+      id: '/admin/denuncias'
+      path: '/denuncias'
+      fullPath: '/admin/denuncias'
+      preLoaderRoute: typeof AdminDenunciasRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/relatorios': {
+      id: '/admin/relatorios'
+      path: '/relatorios'
+      fullPath: '/admin/relatorios'
+      preLoaderRoute: typeof AdminRelatoriosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/usuarios': {
+      id: '/admin/usuarios'
+      path: '/usuarios'
+      fullPath: '/admin/usuarios'
+      preLoaderRoute: typeof AdminUsuariosRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/anuncios/': {
       id: '/anuncios/'
       path: '/'
@@ -330,6 +481,28 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminAnunciosRoute: typeof AdminAnunciosRoute
+  AdminCategoriasRoute: typeof AdminCategoriasRoute
+  AdminConfiguracoesRoute: typeof AdminConfiguracoesRoute
+  AdminDenunciasRoute: typeof AdminDenunciasRoute
+  AdminRelatoriosRoute: typeof AdminRelatoriosRoute
+  AdminUsuariosRoute: typeof AdminUsuariosRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAnunciosRoute: AdminAnunciosRoute,
+  AdminCategoriasRoute: AdminCategoriasRoute,
+  AdminConfiguracoesRoute: AdminConfiguracoesRoute,
+  AdminDenunciasRoute: AdminDenunciasRoute,
+  AdminRelatoriosRoute: AdminRelatoriosRoute,
+  AdminUsuariosRoute: AdminUsuariosRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface AnunciosRouteChildren {
   AnunciosIdRoute: typeof AnunciosIdRoute
   AnunciosIndexRoute: typeof AnunciosIndexRoute
@@ -357,6 +530,7 @@ const PerfilRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
   AnunciosRoute: AnunciosRouteWithChildren,
   CadastroRoute: CadastroRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
