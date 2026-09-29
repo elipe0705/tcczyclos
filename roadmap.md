@@ -9,4 +9,4 @@
 - [x] Aproximar a organização visual das telas de referência sem alterar funcionalidades
 - [x] Validar a nova identidade em desktop e celular
 - [x] Implementar login e cadastro funcionais com sessão simulada, recuperação e saída
-- [ ] Revisar uso em celular, corrigir cortes, navegação e interações demonstrativas com falhas
+- [x] Revisar uso em celular, corrigir cortes, navegação e interações demonstrativas com falhas
