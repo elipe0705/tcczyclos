@@ -41,7 +41,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-surface-dark p-5 text-primary-foreground transition-transform lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center justify-between">
           <Brand />
-          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setOpen(false)}>
+          <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Fechar menu administrativo" onClick={() => setOpen(false)}>
             <X />
           </Button>
         </div>
@@ -76,7 +76,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
       
       <div className="lg:pl-64">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background/95 px-5 backdrop-blur">
-          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setOpen(true)}>
+          <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Abrir menu administrativo" onClick={() => setOpen(true)}>
             <Menu />
           </Button>
           <p className="font-display font-bold">Central ZYCLOS</p>
