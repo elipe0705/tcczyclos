@@ -24,7 +24,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
     setOpen(false);
   }
   function handleSignOut() { signOut(); notify("Você saiu da sua conta."); void navigate({ to: "/" }); }
-  if (standalone) return <div className="min-h-screen bg-background text-foreground">{children}{toast && <div role="status" className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-foreground px-5 py-3 text-sm font-semibold text-background shadow-2xl">{toast}</div>}</div>;
+  if (standalone) return <div className="min-h-screen bg-background text-foreground">{children}{toast && <div role="status" className="fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-lg bg-foreground px-5 py-3 text-sm font-semibold text-background shadow-2xl"><MessageCircle className="size-4 text-highlight" />{toast}</div>}</div>;
   return <div className="min-h-screen bg-background text-foreground">
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6">
@@ -42,10 +42,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
           {user ? <DropdownMenu><DropdownMenuTrigger asChild><Button variant="outline" size="sm"><span className="grid size-6 place-items-center rounded-full bg-primary text-xs text-primary-foreground">{user.name.charAt(0).toUpperCase()}</span>{user.name.split(" ")[0]}</Button></DropdownMenuTrigger><DropdownMenuContent align="end" className="w-56"><DropdownMenuLabel><span className="block">{user.name}</span><span className="block truncate text-xs font-normal text-muted-foreground">{user.email}</span></DropdownMenuLabel><DropdownMenuSeparator /><DropdownMenuItem asChild><Link to="/perfil"><User />Meu perfil</Link></DropdownMenuItem><DropdownMenuItem asChild><Link to="/configuracoes"><Settings />Configurações</Link></DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem onSelect={handleSignOut} className="text-destructive"><LogOut />Sair</DropdownMenuItem></DropdownMenuContent></DropdownMenu> : <Button variant="outline" size="sm" asChild><Link to="/login"><LogIn /> Entrar</Link></Button>}
           <Button size="sm" asChild><Link to="/criar-anuncio"><Plus /> Anunciar</Link></Button>
         </div>
-        <Button className="ml-auto md:hidden" variant="ghost" size="icon" onClick={() => setOpen(!open)} aria-label="Abrir menu">{open ? <X /> : <Menu />}</Button>
+        <Button className="ml-auto md:hidden" variant="ghost" size="icon" onClick={() => setOpen(!open)} aria-label={open ? "Fechar menu" : "Abrir menu"} aria-expanded={open}>{open ? <X /> : <Menu />}</Button>
       </div>
       {open && <div className="border-t bg-background p-4 md:hidden">
-        <form onSubmit={submit} className="relative mb-3"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Pesquisar" className="pl-9" /></form>
+        <form onSubmit={submit} className="relative mb-3"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Pesquisar" aria-label="Pesquisar anúncios" className="pl-9 pr-12" /><Button type="submit" variant="ghost" size="icon" aria-label="Buscar" className="absolute right-0 top-1/2 -translate-y-1/2"><Search /></Button></form>
         <nav className="grid gap-1">{links.map(([to, label]) => <Link key={to} to={to} onClick={() => setOpen(false)} className="rounded-md px-3 py-3 font-semibold hover:bg-muted">{label}</Link>)}
           <Link to="/favoritos" onClick={() => setOpen(false)} className="rounded-md px-3 py-3 font-semibold">Favoritos ({favorites.length})</Link>
           <Link to="/notificacoes" onClick={() => setOpen(false)} className="rounded-md px-3 py-3 font-semibold">Notificações</Link>
