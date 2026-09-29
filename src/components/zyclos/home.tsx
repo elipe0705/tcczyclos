@@ -14,11 +14,11 @@ const pillars = [
 
 export function HomePage() {
   return <>
-    <section className="relative min-h-[calc(100vh-4.5rem)] overflow-hidden bg-primary text-primary-foreground lg:min-h-[720px]">
-      <img src={hero} alt="Mulher usando moda reaproveitada em um ateliê" width={1280} height={1536} className="absolute inset-0 size-full object-cover object-center lg:left-auto lg:w-[54%]" />
-      <div className="absolute inset-0 bg-hero-overlay lg:w-[70%]" />
-      <div className="relative mx-auto flex min-h-[calc(100vh-4.5rem)] max-w-7xl items-end px-6 pb-14 pt-24 lg:min-h-[720px] lg:items-center lg:py-24">
-        <div className="max-w-2xl"><p className="mb-5 text-sm font-bold uppercase">Moda circular · De pessoa para pessoa</p><h1 className="font-display text-5xl font-black leading-[1.02] sm:text-6xl lg:text-7xl">Moda que continua em movimento.</h1><p className="mt-6 max-w-xl text-lg text-primary-foreground/85">Compre, venda e troque peças com histórias. Um jeito mais consciente, econômico e pessoal de renovar seu estilo.</p><div className="mt-8 flex flex-wrap gap-3"><Button size="lg" variant="secondary" asChild><Link to="/anuncios">Explorar anúncios <ArrowRight /></Link></Button><Button size="lg" variant="outlineOnDark" asChild><Link to="/criar-anuncio">Vender uma peça</Link></Button></div></div>
+    <section className="relative min-h-[560px] overflow-hidden bg-background text-foreground lg:min-h-[620px]">
+      <img src={hero} alt="Mulher usando moda reaproveitada em um ateliê" width={1280} height={1536} className="absolute inset-0 size-full object-cover object-center opacity-70 lg:left-auto lg:w-[58%]" />
+      <div className="absolute inset-0 bg-hero-overlay" />
+      <div className="relative mx-auto flex min-h-[560px] max-w-7xl items-end px-6 pb-14 pt-24 lg:min-h-[620px] lg:items-center lg:py-20">
+        <div className="max-w-xl"><p className="mb-5 text-xs font-bold uppercase text-secondary">Moda circular · De pessoa para pessoa</p><h1 className="font-display text-5xl font-black leading-[1.02] sm:text-6xl">Roupas que continuam em movimento.</h1><p className="mt-6 max-w-lg text-base text-muted-foreground">Compre, venda e troque peças com histórias. Um jeito mais consciente, econômico e pessoal de renovar seu estilo.</p><div className="mt-8 flex flex-wrap gap-3"><Button size="lg" asChild><Link to="/anuncios">Ver anúncios <ArrowRight /></Link></Button><Button size="lg" variant="outline" asChild><Link to="/criar-anuncio">Vender uma peça</Link></Button></div></div>
       </div>
     </section>
     <section className="border-b bg-background"><div className="mx-auto grid max-w-7xl divide-y px-6 py-6 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">{pillars.map(([Icon, title, text]) => <div key={title} className="flex gap-4 px-4 py-5"><Icon className="size-6 shrink-0 text-highlight" /><div><h2 className="font-display font-bold">{title}</h2><p className="mt-1 text-sm text-muted-foreground">{text}</p></div></div>)}</div></section>
