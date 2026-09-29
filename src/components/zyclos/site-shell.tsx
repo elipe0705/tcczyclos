@@ -24,15 +24,15 @@ export function SiteShell({ children }: { children: ReactNode }) {
   }
   if (standalone) return <div className="min-h-screen bg-background text-foreground">{children}{toast && <div role="status" className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-foreground px-5 py-3 text-sm font-semibold text-background shadow-2xl">{toast}</div>}</div>;
   return <div className="min-h-screen bg-background text-foreground">
-    <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
-      <div className="mx-auto flex h-18 max-w-7xl items-center gap-4 px-4 sm:px-6">
+    <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6">
         <Link to="/" aria-label="Página inicial"><Brand /></Link>
         <form onSubmit={submit} className="relative ml-auto hidden max-w-sm flex-1 md:block">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Busque por peças, marcas..." className="pl-9" aria-label="Pesquisar anúncios" />
         </form>
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Navegação principal">
-          {links.map(([to, label]) => <Link key={to} to={to} activeOptions={{ exact: to === "/" }} className="rounded-md px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-primary" activeProps={{ className: "bg-muted text-primary" }}>{label}</Link>)}
+          {links.map(([to, label]) => <Link key={to} to={to} activeOptions={{ exact: to === "/" }} className="border-b-2 border-transparent px-3 py-5 text-sm font-semibold text-muted-foreground hover:text-foreground" activeProps={{ className: "border-primary text-foreground" }}>{label}</Link>)}
         </nav>
         <div className="hidden items-center gap-1 md:flex">
           <Button variant="ghost" size="icon" asChild><Link to="/favoritos" aria-label={`Favoritos: ${favorites.length}`}><Heart /><span className="sr-only">Favoritos</span></Link></Button>
@@ -42,7 +42,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
         </div>
         <Button className="ml-auto md:hidden" variant="ghost" size="icon" onClick={() => setOpen(!open)} aria-label="Abrir menu">{open ? <X /> : <Menu />}</Button>
       </div>
-      {open && <div className="border-t p-4 md:hidden">
+      {open && <div className="border-t bg-background p-4 md:hidden">
         <form onSubmit={submit} className="relative mb-3"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Pesquisar" className="pl-9" /></form>
         <nav className="grid gap-1">{links.map(([to, label]) => <Link key={to} to={to} onClick={() => setOpen(false)} className="rounded-md px-3 py-3 font-semibold hover:bg-muted">{label}</Link>)}
           <Link to="/favoritos" onClick={() => setOpen(false)} className="rounded-md px-3 py-3 font-semibold">Favoritos ({favorites.length})</Link>
