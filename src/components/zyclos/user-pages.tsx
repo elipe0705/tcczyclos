@@ -41,15 +41,17 @@ export function AuthPage({ signup = false }: { signup?: boolean }) {
       email: String(form.get("email") ?? ""), password: String(form.get("password") ?? ""),
       ...(signup ? { name: String(form.get("name") ?? ""), username: String(form.get("username") ?? ""), confirm: String(form.get("confirm") ?? "") } : {}),
     };
-    const result = signup ? signupSchema.safeParse(values) : loginSchema.safeParse(values);
+    if (signup) {
+      const result = signupSchema.safeParse(values);
+      if (!result.success) { setError(result.error.issues[0]?.message ?? "Revise os dados informados."); return; }
+      setLoading(true);
+      window.setTimeout(() => { signUp({ name: result.data.name, username: result.data.username, email: result.data.email, ...(photo ? { avatarUrl: photo } : {}) }); notify("Conta criada. Bem-vindo à ZYCLOS!"); void navigate({ to: "/" }); }, 650);
+      return;
+    }
+    const result = loginSchema.safeParse(values);
     if (!result.success) { setError(result.error.issues[0]?.message ?? "Revise os dados informados."); return; }
     setLoading(true);
-    window.setTimeout(() => {
-      if (signup && "name" in result.data) signUp({ name: result.data.name, username: result.data.username, email: result.data.email, ...(photo ? { avatarUrl: photo } : {}) });
-      else signIn(result.data.email);
-      notify(signup ? "Conta criada. Bem-vindo à ZYCLOS!" : "Você entrou na sua conta.");
-      void navigate({ to: "/" });
-    }, 650);
+    window.setTimeout(() => { signIn(result.data.email); notify("Você entrou na sua conta."); void navigate({ to: "/" }); }, 650);
   }
 
   function choosePhoto(event: React.ChangeEvent<HTMLInputElement>) {
