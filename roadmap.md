@@ -10,3 +10,4 @@
 - [x] Validar a nova identidade em desktop e celular
 - [x] Implementar login e cadastro funcionais com sessão simulada, recuperação e saída
 - [x] Revisar uso em celular, corrigir cortes, navegação e interações demonstrativas com falhas
+- [ ] Migrar todo o código TypeScript/TSX para JavaScript/JSX sem alterar o ZYCLOS existente
