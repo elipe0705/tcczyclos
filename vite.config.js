@@ -26,6 +26,7 @@ export default defineConfig({
         server: { entry: "server" },
         router: {
             disableTypes: true,
+            enableRouteGeneration: false,
             generatedRouteTree: "routeTree.gen.js",
         },
     },
