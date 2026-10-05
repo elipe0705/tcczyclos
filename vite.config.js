@@ -5,14 +5,27 @@
 //     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { readFile, writeFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+
+const routeTreePath = fileURLToPath(new URL("./src/routeTree.gen.js", import.meta.url));
+
+function removeTypeFooter(code) {
+  return code.replace(/\nimport type \{ getRouter \}[\s\S]*$/, "\n");
+}
 
 function stripGeneratedTypeFooter() {
   return {
     name: "zyclos:javascript-route-tree",
-    enforce: "pre",
+    enforce: "post",
+    async buildStart() {
+      const code = await readFile(routeTreePath, "utf8");
+      const javascript = removeTypeFooter(code);
+      if (javascript !== code) await writeFile(routeTreePath, javascript);
+    },
     transform(code, id) {
       if (!id.endsWith("/src/routeTree.gen.js")) return null;
-      return code.replace(/\nimport type \{ getRouter \}[\s\S]*$/, "\n");
+      return removeTypeFooter(code);
     },
   };
 }
@@ -25,7 +38,6 @@ export default defineConfig({
     server: { entry: "server" },
     router: {
       disableTypes: true,
-      enableRouteGeneration: false,
       generatedRouteTree: "routeTree.gen.js",
     },
   },
