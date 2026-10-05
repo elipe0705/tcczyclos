@@ -1,2 +1,0 @@
-import { createFileRoute } from "@tanstack/react-router"; import { ListingForm } from "@/components/zyclos/user-pages";
-export const Route = createFileRoute("/criar-anuncio")({ head: () => ({ meta: meta("Criar anúncio", "Coloque uma peça em movimento no ZYCLOS.") }), component: ListingForm }); function meta(t:string,d:string){return [{title:`${t} — ZYCLOS`},{name:"description",content:d},{property:"og:title",content:`${t} — ZYCLOS`},{property:"og:description",content:d},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}]}

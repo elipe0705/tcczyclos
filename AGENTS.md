@@ -14,3 +14,4 @@
 - Keep ZYCLOS strictly frontend-only; all demonstrations use React context and local component state because the TCC explicitly forbids backend persistence and external APIs.
 - Keep mock domain records in `src/data` and reusable marketplace UI in `src/components/zyclos` so a future backend can replace data without redesigning pages.
 - Keep the temporary authentication contract in `AppContext`; it is intentionally in-memory so a future database integration can replace it without touching the screens.
+- Keep application and configuration source in JavaScript/JSX; the TCC requires a TypeScript-free source tree while preserving TanStack Start file-based routing.
