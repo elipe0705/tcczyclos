@@ -10,7 +10,7 @@ export default [
     ...js.configs.recommended,
     files: ["**/*.{js,jsx}"],
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: "latest",
       sourceType: "module",
       parserOptions: { ecmaFeatures: { jsx: true } },
       globals: { ...globals.browser, ...globals.node },
@@ -28,7 +28,7 @@ export default [
             {
               name: "server-only",
               message:
-                "TanStack Start does not use the Next.js `server-only` package. Rename the module to `*.server.ts` or mark it with `@tanstack/react-start/server-only`.",
+                "TanStack Start does not use the Next.js `server-only` package. Rename the module to `*.server.js` or mark it with `@tanstack/react-start/server-only`.",
             },
           ],
         },
