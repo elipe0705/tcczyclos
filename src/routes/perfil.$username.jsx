@@ -1,3 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ProfilePage } from "@/components/zyclos/user-pages";
-export const Route = createFileRoute("/perfil/$username")({ head: () => ({ meta: [{ title: "Perfil da comunidade — ZYCLOS" }, { name: "description", content: "Conheça vendedores e suas avaliações no ZYCLOS." }, { property: "og:title", content: "Perfil da comunidade — ZYCLOS" }, { property: "og:description", content: "Veja anúncios e avaliações deste perfil." }, { property: "og:type", content: "profile" }, { name: "twitter:card", content: "summary_large_image" }] }), component: ProfilePage });
+export const Route = createFileRoute("/perfil/$username")({
+  head: () => ({
+    meta: [
+      { title: "Perfil da comunidade — ZYCLOS" },
+      { name: "description", content: "Conheça vendedores e suas avaliações no ZYCLOS." },
+      { property: "og:title", content: "Perfil da comunidade — ZYCLOS" },
+      { property: "og:description", content: "Veja anúncios e avaliações deste perfil." },
+      { property: "og:type", content: "profile" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: ProfilePage,
+});

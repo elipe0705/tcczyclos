@@ -7,27 +7,26 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 function stripGeneratedTypeFooter() {
-    return {
-        name: "zyclos:javascript-route-tree",
-        enforce: "pre",
-        transform(code, id) {
-            if (!id.endsWith("/src/routeTree.gen.js"))
-                return null;
-            return code.replace(/\nimport type \{ getRouter \}[\s\S]*$/, "\n");
-        },
-    };
+  return {
+    name: "zyclos:javascript-route-tree",
+    enforce: "pre",
+    transform(code, id) {
+      if (!id.endsWith("/src/routeTree.gen.js")) return null;
+      return code.replace(/\nimport type \{ getRouter \}[\s\S]*$/, "\n");
+    },
+  };
 }
 
 export default defineConfig({
-    plugins: [stripGeneratedTypeFooter()],
-    tanstackStart: {
-        // Redirect TanStack Start's bundled server entry to src/server.js (our SSR error wrapper).
-        // nitro/vite builds from this
-        server: { entry: "server" },
-        router: {
-            disableTypes: true,
-            enableRouteGeneration: false,
-            generatedRouteTree: "routeTree.gen.js",
-        },
+  plugins: [stripGeneratedTypeFooter()],
+  tanstackStart: {
+    // Redirect TanStack Start's bundled server entry to src/server.js (our SSR error wrapper).
+    // nitro/vite builds from this
+    server: { entry: "server" },
+    router: {
+      disableTypes: true,
+      enableRouteGeneration: false,
+      generatedRouteTree: "routeTree.gen.js",
     },
+  },
 });
