@@ -1,8 +1,8 @@
 # Routes
 
 TanStack Start uses **file-based routing**. Every `.jsx` file in this directory
-defines a route. Do **not** create `src/pages/`, `src/routes/_app/index.tsx`, or
-`app/layout.tsx` — those are Next.js / Remix conventions. The only root layout
+defines a route. Do **not** create `src/pages/`, `src/routes/_app/index.jsx`, or
+`app/layout.jsx` — those are Next.js / Remix conventions. The only root layout
 is `src/routes/__root.jsx`.
 
 ## Conventions
@@ -18,4 +18,5 @@ is `src/routes/__root.jsx`.
 | `_layout.jsx` | layout route (renders children via `<Outlet />`) |
 | `__root.jsx` | app shell — wraps every page; preserve `<Outlet />` |
 
-`routeTree.gen.js` is auto-generated. Don't edit it by hand.
+`routeTree.gen.js` contains the checked-in runtime route tree. TanStack's generated
+build metadata is written outside `src` because its current footer is TypeScript-only.
