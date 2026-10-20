@@ -14,6 +14,15 @@ Content-Type: application/json
   "estado": "SP"
 }
 
+### Login
+POST http://localhost:8080/api/v1/usuarios/login
+Content-Type: application/json
+
+{
+  "email": "ana@zyclos.app",
+  "senha": "zyclos123"
+}
+
 ### Listar usuários
 GET http://localhost:8080/api/v1/usuarios
 

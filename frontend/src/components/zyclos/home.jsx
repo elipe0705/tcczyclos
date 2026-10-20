@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, BadgeDollarSign, Leaf, RefreshCcw, ShoppingBag, Shirt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import hero from "@/assets/hero-urban-young.jpg";
-import { categories, products } from "@/data/mock";
+import { useCatalog } from "@/data/catalog";
 import { ProductCard } from "./product-card";
 const pillars = [
   [ShoppingBag, "Compre", "Encontre peças que combinam com você."],
@@ -11,6 +11,7 @@ const pillars = [
   [Leaf, "Sustentabilidade", "Prolongue a vida útil das roupas."],
 ];
 export function HomePage() {
+  const { products, categories, isLoading } = useCatalog();
   return (
     <>
       <section className="relative min-h-[560px] overflow-hidden bg-background text-foreground lg:min-h-[620px]">
@@ -75,9 +76,9 @@ export function HomePage() {
           </Link>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
-          {categories.map((category) => (
+          {categories.map(({ id, nome: category }) => (
             <Link
-              key={category}
+              key={id}
               to="/anuncios"
               search={{ categoria: category }}
               className="group grid aspect-square place-items-center rounded-lg border bg-card p-3 text-center transition hover:border-primary hover:bg-muted"
@@ -99,11 +100,17 @@ export function HomePage() {
               <Link to="/anuncios">Ver todos</Link>
             </Button>
           </div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {products.slice(0, 4).map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          {products.length ? (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {products.slice(0, 4).map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-lg border border-dashed p-10 text-center text-muted-foreground">
+              {isLoading ? "Carregando anúncios..." : "Nenhum anúncio publicado ainda."}
+            </p>
+          )}
         </div>
       </section>
       <section className="bg-highlight text-highlight-foreground">

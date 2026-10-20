@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Filter, Search, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { categories, products } from "@/data/mock";
+import { deals, useCatalog } from "@/data/catalog";
 import { ProductCard } from "./product-card";
 import { Page } from "./page";
 export function CatalogPage({ initialQuery = "", initialCategory = "Todos" }) {
@@ -14,6 +14,7 @@ export function CatalogPage({ initialQuery = "", initialCategory = "Todos" }) {
   const [brand, setBrand] = useState("Todas as marcas");
   const [size, setSize] = useState("Todos");
   const [condition, setCondition] = useState("Todas");
+  const { products, categories, isLoading, offline } = useCatalog();
   const filtered = useMemo(
     () =>
       products
@@ -27,16 +28,20 @@ export function CatalogPage({ initialQuery = "", initialCategory = "Todos" }) {
             product.name.toLowerCase().includes(query.toLowerCase()),
         )
         .sort((a, b) =>
-          sort === "menor" ? a.price - b.price : sort === "maior" ? b.price - a.price : 0,
+          sort === "menor"
+            ? (a.price ?? 0) - (b.price ?? 0)
+            : sort === "maior"
+              ? (b.price ?? 0) - (a.price ?? 0)
+              : 0,
         ),
-    [category, deal, brand, size, condition, query, sort],
+    [products, category, deal, brand, size, condition, query, sort],
   );
   const panel = (
     <div className="space-y-7">
       <div>
         <p className="mb-3 font-bold">Categorias</p>
         <div className="grid gap-1">
-          {["Todos", ...categories].map((item) => (
+          {["Todos", ...categories.map((c) => c.nome)].map((item) => (
             <Button
               key={item}
               variant={category === item ? "default" : "ghost"}
@@ -51,7 +56,7 @@ export function CatalogPage({ initialQuery = "", initialCategory = "Todos" }) {
       <div>
         <p className="mb-3 font-bold">Tipo de negociação</p>
         <div className="grid gap-2">
-          {["Todos", "Venda", "Troca", "Venda ou troca"].map((item) => (
+          {["Todos", ...Object.values(deals)].map((item) => (
             <label key={item} className="flex items-center gap-2 text-sm">
               <input
                 type="radio"
@@ -159,7 +164,15 @@ export function CatalogPage({ initialQuery = "", initialCategory = "Todos" }) {
         <section>
           <div className="mb-5 flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              <strong className="text-foreground">{filtered.length}</strong> anúncios encontrados
+              {isLoading ? (
+                "Carregando anúncios..."
+              ) : (
+                <>
+                  <strong className="text-foreground">{filtered.length}</strong> anúncios
+                  encontrados
+                  {offline && " · servidor offline, exibindo dados de demonstração"}
+                </>
+              )}
             </p>
             <SlidersHorizontal className="size-4 text-muted-foreground" />
           </div>

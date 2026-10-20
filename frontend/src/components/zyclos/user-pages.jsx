@@ -30,6 +30,15 @@ import { Brand } from "./brand";
 import { Page } from "./page";
 import { ProductCard } from "./product-card";
 import { conversations, notifications, products, reviews } from "@/data/mock";
+import {
+  conditions,
+  deals,
+  dealCode,
+  formatPrice,
+  useCatalog,
+  useRefreshCatalog,
+} from "@/data/catalog";
+import { api } from "@/lib/api";
 import { useApp } from "@/context/app-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,7 +79,7 @@ export function AuthPage({ signup = false }) {
   const [loading, setLoading] = useState(false);
   const [photo, setPhoto] = useState(null);
   const photoUrl = useRef(null);
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault();
     setError("");
     const form = new FormData(e.currentTarget);
@@ -92,16 +101,16 @@ export function AuthPage({ signup = false }) {
         return;
       }
       setLoading(true);
-      window.setTimeout(() => {
-        signUp({
-          name: result.data.name,
-          username: result.data.username,
-          email: result.data.email,
-          ...(photo ? { avatarUrl: photo } : {}),
-        });
+      try {
+        await signUp(result.data);
         notify("Conta criada. Bem-vindo à ZYCLOS!");
         void navigate({ to: "/" });
-      }, 650);
+      } catch (err) {
+        setError(
+          err.status === 400 ? "Este e-mail ou nome de usuário já está cadastrado." : err.message,
+        );
+        setLoading(false);
+      }
       return;
     }
     const result = loginSchema.safeParse(values);
@@ -110,11 +119,14 @@ export function AuthPage({ signup = false }) {
       return;
     }
     setLoading(true);
-    window.setTimeout(() => {
-      signIn(result.data.email);
+    try {
+      await signIn(result.data.email, result.data.password, form.get("remember") === "on");
       notify("Você entrou na sua conta.");
       void navigate({ to: "/" });
-    }, 650);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
   }
   function choosePhoto(event) {
     const file = event.target.files?.[0];
@@ -124,9 +136,7 @@ export function AuthPage({ signup = false }) {
     setPhoto(photoUrl.current);
   }
   function googleDemo() {
-    signIn("conta.google@exemplo.com");
-    notify("Entrada com Google simulada com sucesso.");
-    void navigate({ to: "/" });
+    notify("Entrar com Google ainda não está disponível. Use e-mail e senha.");
   }
   return (
     <div className="grid min-h-screen bg-background lg:grid-cols-[0.9fr_1.1fr]">
@@ -295,7 +305,16 @@ export function AuthPage({ signup = false }) {
     </div>
   );
 }
-function Field({ label, name, type = "text", autoComplete, icon }) {
+function Field({
+  label,
+  name,
+  type = "text",
+  autoComplete,
+  icon,
+  value,
+  onChange,
+  required = true,
+}) {
   return (
     <label className="text-sm font-semibold">
       {label}
@@ -306,10 +325,11 @@ function Field({ label, name, type = "text", autoComplete, icon }) {
           </span>
         )}
         <Input
-          required
+          required={required}
           name={name}
           type={type}
           autoComplete={autoComplete}
+          {...(onChange ? { value: value ?? "", onChange: (e) => onChange(e.target.value) } : {})}
           className={`h-11 ${icon ? "pl-9" : ""}`}
         />
       </div>
@@ -473,7 +493,8 @@ export function ProfilePage() {
   );
 }
 export function FavoritesPage() {
-  const { favorites } = useApp();
+  const { favorites, user } = useApp();
+  const { products } = useCatalog();
   const items = products.filter((p) => favorites.includes(p.id));
   return (
     <Page
@@ -490,10 +511,10 @@ export function FavoritesPage() {
       ) : (
         <Empty
           icon={<Heart />}
-          title="Nenhum favorito ainda"
+          title={user ? "Nenhum favorito ainda" : "Entre para ver seus favoritos"}
           text="Explore os anúncios e salve as peças que você ama."
-          link="/anuncios"
-          action="Explorar anúncios"
+          link={user ? "/anuncios" : "/login"}
+          action={user ? "Explorar anúncios" : "Entrar"}
         />
       )}
     </Page>
@@ -760,159 +781,360 @@ function TradeRow({ title, status }) {
     </div>
   );
 }
-export function ListingForm({ edit = false }) {
-  const { notify } = useApp();
+const emptyListing = {
+  title: "",
+  categoryId: "",
+  brand: "",
+  size: "",
+  condition: "Excelente",
+  style: "",
+  city: "",
+  state: "",
+  description: "",
+  deal: "Venda",
+  price: "",
+  imageUrl: "",
+};
+function fromProduct(p) {
+  return {
+    title: p.name,
+    categoryId: String(p.categoryId ?? ""),
+    brand: p.brand === "Sem marca" ? "" : p.brand,
+    size: p.size,
+    condition: p.condition,
+    style: p.style,
+    city: p.city,
+    state: p.state,
+    description: p.description,
+    deal: p.deal,
+    price: p.price == null ? "" : String(p.price),
+    imageUrl: p.imageIds?.length ? p.images[0] : "",
+  };
+}
+// Primeira etapa com problema, para levar o usuário direto ao campo
+function validateListing(v) {
+  if (!v.title.trim()) return [1, "Informe o título do anúncio."];
+  if (!v.categoryId) return [1, "Escolha uma categoria."];
+  if (!v.size.trim()) return [1, "Informe o tamanho."];
+  if (!v.description.trim()) return [1, "Escreva uma descrição para a peça."];
+  if (v.deal !== "Troca" && !(Number(v.price) > 0)) return [3, "Informe um preço válido."];
+  return null;
+}
+function toAnuncio(v, vendedorId, status) {
+  return {
+    titulo: v.title.trim(),
+    descricao: v.description.trim(),
+    preco: v.deal === "Troca" ? null : Number(v.price),
+    marca: v.brand.trim() || null,
+    tamanho: v.size.trim(),
+    condicao: v.condition,
+    estilo: v.style.trim() || null,
+    cidade: v.city.trim() || null,
+    estado: v.state.trim().toUpperCase().slice(0, 2) || null,
+    tipoNegociacao: dealCode(v.deal),
+    status,
+    categoriaId: Number(v.categoryId),
+    vendedorId,
+  };
+}
+export function ListingForm({ edit = false, id }) {
+  const { notify, user } = useApp();
   const navigate = useNavigate();
-  const existing = products[0];
+  const refresh = useRefreshCatalog();
+  const { products, categories, isLoading, offline } = useCatalog();
+  const existing = edit ? products.find((p) => p.id === id) : undefined;
   const [step, setStep] = useState(1);
-  const [deal, setDeal] = useState("Venda");
-  const [preview, setPreview] = useState(edit ? (existing?.image ?? null) : null);
+  const [form, setForm] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const values = form ?? (existing ? fromProduct(existing) : emptyListing);
+  const set = (field) => (value) => setForm({ ...values, [field]: value });
+  const deal = values.deal;
+  const preview = values.imageUrl.trim() || null;
+  const blocked = !user
+    ? [
+        "Entre na sua conta para anunciar",
+        "Seus anúncios ficam ligados ao seu perfil.",
+        "/login",
+        "Entrar",
+      ]
+    : offline
+      ? [
+          "Servidor indisponível",
+          "Ligue o back-end do ZYCLOS para publicar anúncios.",
+          "/anuncios",
+          "Ver anúncios",
+        ]
+      : edit && !isLoading && !existing
+        ? ["Anúncio não encontrado", "Ele pode ter sido removido.", "/anuncios", "Ver anúncios"]
+        : edit && existing && existing.sellerId !== user.id
+          ? ["Este anúncio não é seu", "Só quem publicou pode editar.", "/anuncios", "Ver anúncios"]
+          : null;
+  async function save() {
+    const invalid = validateListing(values);
+    if (invalid) {
+      setStep(invalid[0]);
+      setError(invalid[1]);
+      return;
+    }
+    setError("");
+    setSaving(true);
+    const body = toAnuncio(values, user.id, existing?.status ?? "ATIVO");
+    try {
+      const saved = edit
+        ? await api.put(`/anuncios/${id}`, body)
+        : await api.post("/anuncios", body);
+      const imageId = existing?.imageIds?.[0];
+      const image = { url: preview, principal: true, ordem: 0, anuncioId: saved.id };
+      if (preview && imageId) await api.put(`/anuncio-imagens/${imageId}`, image);
+      else if (preview) await api.post("/anuncio-imagens", image);
+      else if (imageId) await api.delete(`/anuncio-imagens/${imageId}`);
+      await refresh();
+      notify(edit ? "Alterações salvas com sucesso." : "Seu anúncio foi publicado com sucesso!");
+      void navigate({ to: "/anuncios/$id", params: { id: String(saved.id) } });
+    } catch (err) {
+      setError(err.message);
+      setSaving(false);
+    }
+  }
+  async function remove() {
+    setSaving(true);
+    try {
+      // Exclusão lógica: o anúncio sai do catálogo, mas favoritos e conversas continuam íntegros
+      await api.put(
+        `/anuncios/${id}`,
+        toAnuncio(fromProduct(existing), existing.sellerId, "INATIVO"),
+      );
+      await refresh();
+      notify("Anúncio excluído.");
+      void navigate({ to: "/anuncios", search: {} });
+    } catch (err) {
+      setError(err.message);
+      setSaving(false);
+    }
+  }
   return (
     <Page
       title={edit ? "Editar anúncio" : "Criar anúncio"}
       eyebrow={edit ? "Atualize sua peça" : "Nova peça em movimento"}
     >
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-8 grid grid-cols-4 gap-2">
-          {["Informações", "Fotos", "Preço", "Revisão"].map((label, i) => (
-            <button
-              key={label}
-              onClick={() => setStep(i + 1)}
-              className={`border-t-4 py-3 text-xs font-bold ${step >= i + 1 ? "border-primary text-primary" : "border-border text-muted-foreground"}`}
-            >
-              {i + 1}. {label}
-            </button>
-          ))}
-        </div>
-        <div className="rounded-lg border bg-card p-5 sm:p-8">
-          {step === 1 && (
-            <div className="grid gap-5 sm:grid-cols-2">
-              <Field label="Título" name="title" />
-              <Field label="Categoria" name="category" />
-              <Field label="Marca" name="brand" />
-              <Field label="Tamanho" name="size" />
-              <Field label="Condição" name="condition" />
-              <Field label="Estilo" name="style" />
-              <label className="text-sm font-semibold sm:col-span-2">
-                Descrição
-                <textarea
-                  className="mt-2 min-h-28 w-full rounded-md border bg-background p-3"
-                  defaultValue={edit ? (existing?.description ?? "") : ""}
+      {blocked ? (
+        <Empty
+          icon={<Upload />}
+          title={blocked[0]}
+          text={blocked[1]}
+          link={blocked[2]}
+          action={blocked[3]}
+        />
+      ) : edit && !existing ? (
+        <p className="text-center text-muted-foreground">Carregando anúncio...</p>
+      ) : (
+        <div className="mx-auto max-w-3xl">
+          <div className="mb-8 grid grid-cols-4 gap-2">
+            {["Informações", "Fotos", "Preço", "Revisão"].map((label, i) => (
+              <button
+                key={label}
+                onClick={() => setStep(i + 1)}
+                className={`border-t-4 py-3 text-xs font-bold ${step >= i + 1 ? "border-primary text-primary" : "border-border text-muted-foreground"}`}
+              >
+                {i + 1}. {label}
+              </button>
+            ))}
+          </div>
+          <div className="rounded-lg border bg-card p-5 sm:p-8">
+            {step === 1 && (
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Field label="Título" name="title" value={values.title} onChange={set("title")} />
+                <label className="text-sm font-semibold">
+                  Categoria
+                  <select
+                    value={values.categoryId}
+                    onChange={(e) => set("categoryId")(e.target.value)}
+                    className="mt-2 h-11 w-full rounded-md border bg-background px-3 font-normal"
+                  >
+                    <option value="">Selecione</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.nome}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <Field
+                  label="Marca"
+                  name="brand"
+                  required={false}
+                  value={values.brand}
+                  onChange={set("brand")}
                 />
-              </label>
-              <label className="text-sm font-semibold sm:col-span-2">
-                Tipo de negociação
-                <select
-                  value={deal}
-                  onChange={(e) => setDeal(e.target.value)}
-                  className="mt-2 h-10 w-full rounded-md border bg-background px-3"
-                >
-                  <option>Venda</option>
-                  <option>Troca</option>
-                  <option>Venda ou troca</option>
-                </select>
-              </label>
-            </div>
-          )}
-          {step === 2 && (
-            <label className="grid min-h-72 cursor-pointer place-items-center rounded-lg border-2 border-dashed bg-muted text-center">
-              <div>
-                {preview ? (
-                  <img
-                    src={preview}
-                    alt="Prévia da foto"
-                    className="mx-auto mb-4 size-48 rounded-lg object-cover"
+                <Field label="Tamanho" name="size" value={values.size} onChange={set("size")} />
+                <label className="text-sm font-semibold">
+                  Condição
+                  <select
+                    value={values.condition}
+                    onChange={(e) => set("condition")(e.target.value)}
+                    className="mt-2 h-11 w-full rounded-md border bg-background px-3 font-normal"
+                  >
+                    {[...new Set([...conditions, values.condition])].map((c) => (
+                      <option key={c}>{c}</option>
+                    ))}
+                  </select>
+                </label>
+                <Field
+                  label="Estilo"
+                  name="style"
+                  required={false}
+                  value={values.style}
+                  onChange={set("style")}
+                />
+                <Field
+                  label="Cidade"
+                  name="city"
+                  required={false}
+                  value={values.city}
+                  onChange={set("city")}
+                />
+                <Field
+                  label="Estado (UF)"
+                  name="state"
+                  required={false}
+                  value={values.state}
+                  onChange={set("state")}
+                />
+                <label className="text-sm font-semibold sm:col-span-2">
+                  Descrição
+                  <textarea
+                    className="mt-2 min-h-28 w-full rounded-md border bg-background p-3 font-normal"
+                    value={values.description}
+                    onChange={(e) => set("description")(e.target.value)}
                   />
-                ) : (
-                  <ImagePlus className="mx-auto mb-4 size-10 text-primary" />
-                )}
-                <strong className="block">Adicione fotos da peça</strong>
-                <span className="mt-1 block text-sm text-muted-foreground">
-                  Selecione uma imagem para visualizar
-                </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) setPreview(URL.createObjectURL(file));
-                  }}
+                </label>
+                <label className="text-sm font-semibold sm:col-span-2">
+                  Tipo de negociação
+                  <select
+                    value={deal}
+                    onChange={(e) => set("deal")(e.target.value)}
+                    className="mt-2 h-10 w-full rounded-md border bg-background px-3"
+                  >
+                    {Object.values(deals).map((d) => (
+                      <option key={d}>{d}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            )}
+            {step === 2 && (
+              <div className="grid gap-5">
+                <div className="grid min-h-72 place-items-center rounded-lg border-2 border-dashed bg-muted text-center">
+                  <div>
+                    {preview ? (
+                      <img
+                        src={preview}
+                        alt="Prévia da foto"
+                        className="mx-auto mb-4 size-48 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <ImagePlus className="mx-auto mb-4 size-10 text-primary" />
+                    )}
+                    <strong className="block">Adicione a foto da peça</strong>
+                    <span className="mt-1 block text-sm text-muted-foreground">
+                      Cole abaixo o link (URL) de uma imagem
+                    </span>
+                  </div>
+                </div>
+                <Field
+                  label="Link da foto"
+                  name="imageUrl"
+                  type="url"
+                  required={false}
+                  value={values.imageUrl}
+                  onChange={set("imageUrl")}
                 />
               </div>
-            </label>
-          )}
-          {step === 3 && (
-            <div className="space-y-5">
-              <div className="rounded-lg bg-accent p-5">
-                <strong>{deal}</strong>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {deal === "Troca"
-                    ? "Esta peça ficará disponível para propostas de troca."
-                    : "Defina um valor justo para a sua peça."}
-                </p>
-              </div>
-              {deal !== "Troca" && <Field label="Preço (R$)" name="price" type="number" />}
-            </div>
-          )}
-          {step === 4 && (
-            <div>
-              <h2 className="font-display text-xl font-bold">Revise seu anúncio</h2>
-              <div className="mt-5 flex gap-5 rounded-lg bg-muted p-4">
-                {preview ? (
-                  <img src={preview} alt="Prévia" className="size-28 rounded-md object-cover" />
-                ) : (
-                  <div className="grid size-28 place-items-center rounded-md bg-background">
-                    <ShirtFallback />
-                  </div>
-                )}
-                <div>
-                  <strong>{edit ? (existing?.name ?? "Sua peça") : "Sua nova peça"}</strong>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {deal} · Informações prontas para publicação.
+            )}
+            {step === 3 && (
+              <div className="space-y-5">
+                <div className="rounded-lg bg-accent p-5">
+                  <strong>{deal}</strong>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {deal === "Troca"
+                      ? "Esta peça ficará disponível para propostas de troca."
+                      : "Defina um valor justo para a sua peça."}
                   </p>
                 </div>
+                {deal !== "Troca" && (
+                  <Field
+                    label="Preço (R$)"
+                    name="price"
+                    type="number"
+                    value={values.price}
+                    onChange={set("price")}
+                  />
+                )}
               </div>
-            </div>
-          )}
-          <div className="mt-8 flex justify-between">
-            <Button variant="outline" disabled={step === 1} onClick={() => setStep(step - 1)}>
-              <ArrowLeft />
-              Voltar
-            </Button>
-            {step < 4 ? (
-              <Button onClick={() => setStep(step + 1)}>Continuar</Button>
-            ) : (
-              <Button
-                onClick={() => {
-                  notify(
-                    edit
-                      ? "Alterações salvas com sucesso."
-                      : "Seu anúncio foi publicado com sucesso!",
-                  );
-                  void navigate({ to: "/anuncios", search: {} });
-                }}
-              >
-                {edit ? "Salvar alterações" : "Publicar anúncio"}
+            )}
+            {step === 4 && (
+              <div>
+                <h2 className="font-display text-xl font-bold">Revise seu anúncio</h2>
+                <div className="mt-5 flex gap-5 rounded-lg bg-muted p-4">
+                  {preview ? (
+                    <img src={preview} alt="Prévia" className="size-28 rounded-md object-cover" />
+                  ) : (
+                    <div className="grid size-28 place-items-center rounded-md bg-background">
+                      <ShirtFallback />
+                    </div>
+                  )}
+                  <div>
+                    <strong>{values.title || "Sua nova peça"}</strong>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {deal} ·{" "}
+                      {formatPrice(deal === "Troca" || !values.price ? null : Number(values.price))}
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {categories.find((c) => String(c.id) === values.categoryId)?.nome ??
+                        "Sem categoria"}
+                      {values.size && ` · Tam. ${values.size}`} · {values.condition}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            {error && (
+              <Alert variant="destructive" className="mt-6">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <div className="mt-8 flex justify-between">
+              <Button variant="outline" disabled={step === 1} onClick={() => setStep(step - 1)}>
+                <ArrowLeft />
+                Voltar
               </Button>
+              {step < 4 ? (
+                <Button onClick={() => setStep(step + 1)}>Continuar</Button>
+              ) : (
+                <Button disabled={saving} onClick={() => void save()}>
+                  {saving && <LoaderCircle className="animate-spin" />}
+                  {edit ? "Salvar alterações" : "Publicar anúncio"}
+                </Button>
+              )}
+            </div>
+            {edit && (
+              <div className="mt-4 flex justify-between border-t pt-4">
+                <Button
+                  variant="ghost"
+                  onClick={() => void navigate({ to: "/anuncios/$id", params: { id } })}
+                >
+                  Cancelar
+                </Button>
+                <Button variant="destructive" disabled={saving} onClick={() => void remove()}>
+                  <Trash2 />
+                  Excluir anúncio
+                </Button>
+              </div>
             )}
           </div>
-          {edit && (
-            <div className="mt-4 flex justify-between border-t pt-4">
-              <Button
-                variant="ghost"
-                onClick={() => void navigate({ to: "/anuncios/$id", params: { id: "1" } })}
-              >
-                Cancelar
-              </Button>
-              <Button variant="destructive" onClick={() => notify("Anúncio excluído (simulação).")}>
-                <Trash2 />
-                Excluir anúncio
-              </Button>
-            </div>
-          )}
         </div>
-      </div>
+      )}
     </Page>
   );
 }

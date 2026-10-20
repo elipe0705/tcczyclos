@@ -7,6 +7,8 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
+  // A porta padrão do Lovable é 8080, a mesma da API Spring Boot. O site roda na 5173 (liberada no CORS).
+  vite: { server: { port: 5173, strictPort: true } },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.js (our SSR error wrapper).
     // nitro/vite builds from this

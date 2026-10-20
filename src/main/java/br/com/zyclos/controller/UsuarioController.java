@@ -43,6 +43,17 @@ public class UsuarioController {
         }
     }
 
+    // Login: recebe { "email": "...", "senha": "..." } e devolve o usuário (sem a senha)
+
+    @PostMapping("/login")
+    public ResponseEntity<Object> login(@RequestBody Map<String, String> credenciais) {
+        try {
+            return ResponseEntity.ok(usuarioService.login(credenciais.get("email"), credenciais.get("senha")));
+        } catch (RuntimeException e) {
+            return erro(HttpStatus.UNAUTHORIZED, "E-mail ou senha inválidos");
+        }
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Object> findById(@PathVariable String id) {
         try {

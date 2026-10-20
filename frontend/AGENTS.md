@@ -11,7 +11,7 @@
 
 ## Project architecture
 
-- Keep ZYCLOS strictly frontend-only; all demonstrations use React context and local component state because the TCC explicitly forbids backend persistence and external APIs.
-- Keep mock domain records in `src/data` and reusable marketplace UI in `src/components/zyclos` so a future backend can replace data without redesigning pages.
-- Keep the temporary authentication contract in `AppContext`; it is intentionally in-memory so a future database integration can replace it without touching the screens.
+- This folder is the frontend of a monorepo; the Spring Boot API lives in the repository root and is called through `src/lib/api.js` (`VITE_API_URL`, default `http://localhost:8080/api/v1`).
+- `src/data/catalog.js` loads listings, categories, sellers and images from the API and maps them to the `product` shape the components use; it falls back to `src/data/mock.js` when the API is unreachable.
+- Authentication and favorites live in `AppContext` and go through the API; messages, trades, notifications, profile and admin still use mock data.
 - Keep application and configuration source in JavaScript/JSX; the TCC requires a TypeScript-free source tree while preserving TanStack Start file-based routing.

@@ -2,8 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ListingForm } from "@/components/zyclos/user-pages";
 export const Route = createFileRoute("/editar-anuncio/$id")({
   head: () => ({ meta: meta("Editar anúncio", "Atualize seu anúncio no ZYCLOS.") }),
-  component: () => <ListingForm edit />,
+  component: EditListing,
 });
+function EditListing() {
+  const { id } = Route.useParams();
+  return <ListingForm edit id={id} />;
+}
 function meta(t, d) {
   return [
     { title: `${t} — ZYCLOS` },

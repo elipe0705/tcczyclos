@@ -63,4 +63,15 @@ public class UsuarioService {
         Usuario usuarioExistente = findById(id);
         usuarioRepository.delete(usuarioExistente);
     }
+
+    // Método responsável em validar o login (e-mail e senha) do usuário
+
+    public Usuario login(String email, String senha) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("E-mail ou senha inválidos"));
+        if (!usuario.isCodStatus() || !usuario.getSenha().equals(senha)) {
+            throw new RuntimeException("E-mail ou senha inválidos");
+        }
+        return usuario;
+    }
 }

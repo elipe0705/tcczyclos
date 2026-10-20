@@ -3,6 +3,7 @@ import {
   Heart,
   MapPin,
   MessageCircle,
+  Pencil,
   RefreshCcw,
   ShieldCheck,
   ShoppingBag,
@@ -18,11 +19,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { products } from "@/data/mock";
+import { formatPrice } from "@/data/catalog";
 import { useApp } from "@/context/app-context";
 export function ProductDetail({ product }) {
   const [image, setImage] = useState(product.image);
-  const { favorites, toggleFavorite, notify } = useApp();
+  const { favorites, toggleFavorite, notify, user } = useApp();
+  const mine = user?.id === product.sellerId;
   const liked = favorites.includes(product.id);
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
@@ -35,13 +37,7 @@ export function ProductDetail({ product }) {
       <div className="grid gap-10 lg:grid-cols-[1.15fr_.85fr]">
         <div className="grid gap-3 sm:grid-cols-[90px_1fr]">
           <div className="order-2 flex max-w-full gap-3 overflow-x-auto sm:order-1 sm:flex-col">
-            {[
-              product.image,
-              ...products
-                .filter((p) => p.id !== product.id)
-                .slice(0, 2)
-                .map((p) => p.image),
-            ].map((item, index) => (
+            {product.images.map((item, index) => (
               <button
                 key={index}
                 onClick={() => setImage(item)}
@@ -67,7 +63,7 @@ export function ProductDetail({ product }) {
           </span>
           <h1 className="mt-4 font-display text-3xl font-black sm:text-4xl">{product.name}</h1>
           <p className="mt-3 font-display text-3xl font-black text-primary">
-            {product.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+            {formatPrice(product.price)}
           </p>
           <div className="mt-7 grid grid-cols-2 gap-y-5 border-y py-6 text-sm">
             {[
@@ -123,10 +119,17 @@ export function ProductDetail({ product }) {
                 <MessageCircle /> Conversar
               </Link>
             </Button>
+            {mine && (
+              <Button variant="outline" className="sm:col-span-2" asChild>
+                <Link to="/editar-anuncio/$id" params={{ id: product.id }}>
+                  <Pencil /> Editar meu anúncio
+                </Link>
+              </Button>
+            )}
             <Button
               variant="ghost"
               className="sm:col-span-2"
-              onClick={() => toggleFavorite(product.id)}
+              onClick={() => void toggleFavorite(product.id)}
             >
               <Heart className={liked ? "fill-highlight text-highlight" : ""} />
               {liked ? "Favoritado" : "Favoritar"}
@@ -140,7 +143,10 @@ export function ProductDetail({ product }) {
               <div>
                 <Link
                   to="/perfil/$username"
-                  params={{ username: product.seller.toLowerCase().replaceAll(" ", "-") }}
+                  params={{
+                    username:
+                      product.sellerUsername || product.seller.toLowerCase().replaceAll(" ", "-"),
+                  }}
                   className="font-bold hover:text-primary"
                 >
                   {product.seller}
@@ -155,10 +161,12 @@ export function ProductDetail({ product }) {
                 <MapPin className="size-3" />
                 {product.location}
               </span>
-              <span className="flex items-center gap-1">
-                <ShieldCheck className="size-3" />
-                Perfil verificado
-              </span>
+              {product.sellerVerified && (
+                <span className="flex items-center gap-1">
+                  <ShieldCheck className="size-3" />
+                  Perfil verificado
+                </span>
+              )}
             </div>
           </div>
         </div>

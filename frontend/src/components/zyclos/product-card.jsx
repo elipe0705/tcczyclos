@@ -2,8 +2,9 @@ import { Heart, MapPin } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/context/app-context";
+import { formatPrice } from "@/data/catalog";
 export function ProductCard({ product }) {
-  const { favorites, toggleFavorite, notify } = useApp();
+  const { favorites, toggleFavorite } = useApp();
   const liked = favorites.includes(product.id);
   return (
     <article className="group min-w-0 overflow-hidden rounded-lg border bg-card transition duration-300 hover:-translate-y-1 hover:shadow-xl">
@@ -21,10 +22,7 @@ export function ProductCard({ product }) {
           size="icon"
           aria-label={liked ? "Remover dos favoritos" : "Adicionar aos favoritos"}
           className="absolute right-3 top-3 shadow-sm"
-          onClick={() => {
-            toggleFavorite(product.id);
-            notify(liked ? "Produto removido dos favoritos." : "Produto adicionado aos favoritos.");
-          }}
+          onClick={() => void toggleFavorite(product.id)}
         >
           <Heart className={liked ? "fill-highlight text-highlight" : "text-foreground"} />
         </Button>
@@ -40,7 +38,7 @@ export function ProductCard({ product }) {
           <h3 className="mt-1 truncate font-display font-bold text-foreground">{product.name}</h3>
         </div>
         <p className="font-display text-xl font-extrabold text-primary">
-          {product.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+          {formatPrice(product.price)}
         </p>
         <div className="flex items-center justify-between gap-2 border-t pt-3 text-xs text-muted-foreground">
           <span className="flex min-w-0 items-center gap-1 truncate">

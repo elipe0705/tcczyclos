@@ -3,6 +3,37 @@
 Backend REST da plataforma de moda circular ZYCLOS (TCC), feito em Spring Boot seguindo a apostila
 "Projeto Pizzaria Passo a Passo" (Prof. Rogério Caetano).
 
+O front-end (React + TanStack Start, feito no Lovable) fica na pasta `frontend/` e consome esta API.
+
+## Como rodar tudo junto
+
+1. Suba o back-end (seção "Como rodar (Supabase)" abaixo). A API fica em `http://localhost:8080`.
+2. Em outro terminal:
+   ```sh
+   cd frontend
+   npm install
+   npm run dev
+   ```
+   O site abre em `http://localhost:5173` (porta já liberada no CORS). A porta está fixada em
+   `frontend/vite.config.js`, porque a configuração do Lovable usaria a 8080, que é a da API.
+3. Se a API estiver em outro endereço, copie `frontend/.env.example` para `frontend/.env` e ajuste `VITE_API_URL`.
+
+O que o front-end já usa da API:
+
+| Tela | Endpoints |
+| --- | --- |
+| Login / Cadastro | `POST /usuarios/login`, `POST /usuarios` |
+| Início, Anúncios, Detalhe | `GET /anuncios`, `/categorias`, `/usuarios`, `/anuncio-imagens` |
+| Favoritos (coração) | `GET/POST /favoritos`, `DELETE /favoritos/{id}` |
+| Criar / Editar / Excluir anúncio | `POST/PUT /anuncios`, `POST/PUT/DELETE /anuncio-imagens` |
+
+- A sessão fica no navegador ("Lembrar de mim" mantém o login depois de fechar a aba).
+- Excluir um anúncio pelo site muda o `status` para `INATIVO` (não apaga a linha, para não quebrar favoritos
+  e conversas). O catálogo mostra só anúncios `ATIVO`.
+- A foto do anúncio é um link (URL) de imagem, gravado em `anuncio_imagem`.
+- Se a API estiver desligada, o site mostra os dados de demonstração de `frontend/src/data/mock.js`.
+- Mensagens, trocas, notificações, perfil e área administrativa ainda usam dados de demonstração.
+
 ## Estrutura (MVC)
 
 ```
@@ -64,6 +95,9 @@ Todas as entidades têm o mesmo CRUD:
 
 Recursos: `usuarios`, `categorias`, `anuncios`, `anuncio-imagens`, `favoritos`, `seguidores`,
 `conversas`, `mensagens`, `notificacoes`, `avaliacoes`, `propostas-troca`, `denuncias`.
+
+Login: `POST /api/v1/usuarios/login` com `{ "email": "...", "senha": "..." }` devolve o usuário (sem a senha)
+ou 401.
 
 Os relacionamentos são enviados pelo id (ex.: `"categoriaId": 3, "vendedorId": 1`).
 
