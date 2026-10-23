@@ -83,6 +83,10 @@ public class UsuarioController {
             return ResponseEntity.ok(usuarioService.update(Long.parseLong(id), usuario));
         } catch (NumberFormatException e) {
             return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + id);
+        } catch (IllegalArgumentException e) {
+            return erro(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (IllegalStateException e) {
+            return erro(HttpStatus.CONFLICT, e.getMessage());
         } catch (DataIntegrityViolationException e) {
             return erro(HttpStatus.BAD_REQUEST, "Dados inválidos: confira os campos obrigatórios e os ids relacionados");
         } catch (RuntimeException e) {

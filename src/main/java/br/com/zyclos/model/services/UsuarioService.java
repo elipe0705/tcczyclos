@@ -3,16 +3,22 @@ package br.com.zyclos.model.services;
 import br.com.zyclos.model.entity.Usuario;
 import br.com.zyclos.model.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class UsuarioService {
 
     @Autowired // Injeção de dependência automática
     private UsuarioRepository usuarioRepository;
+
+    @Autowired // BCrypt, configurado em SenhaConfiguration
+    private PasswordEncoder passwordEncoder;
 
     // Método responsável em listar todos os usuários cadastrados no banco de dados
 
@@ -24,12 +30,13 @@ public class UsuarioService {
     // IllegalArgumentException = dado inválido (400); IllegalStateException = e-mail/username já usado (409)
 
     public Usuario save(Usuario usuario) {
+        usuario.setEmail(normalizarEmail(usuario.getEmail()));
         validarCampo(usuario.getNome(), "O nome", 100, true);
         validarCampo(usuario.getUsername(), "O nome de usuário", 30, true);
         validarCampo(usuario.getEmail(), "O e-mail", 255, true);
-        validarCampo(usuario.getSenha(), "A senha", 255, true);
+        validarSenha(usuario.getSenha());
         validarCampo(usuario.getAvatarUrl(), "O link da foto", 500, false);
-        if (usuarioRepository.findByEmail(usuario.getEmail()).isPresent()) {
+        if (usuarioRepository.findByEmailIgnoreCase(usuario.getEmail()).isPresent()) {
             throw new IllegalStateException("Este e-mail já está cadastrado.");
         }
         if (usuarioRepository.existsByUsername(usuario.getUsername())) {
@@ -40,6 +47,7 @@ public class UsuarioService {
         }
         usuario.setDataCadastro(LocalDateTime.now());
         usuario.setCodStatus(true);
+        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
         return usuarioRepository.save(usuario);
     }
 
@@ -52,13 +60,23 @@ public class UsuarioService {
 
     // Método responsável em atualizar o usuário
 
+    // Senha nula ou em branco mantém a atual; uma nova senha é gravada como hash
+
     public Usuario update(Long id, Usuario usuario) {
         Usuario usuarioExistente = findById(id);
+        String email = normalizarEmail(usuario.getEmail());
+        boolean emailDeOutraConta = usuarioRepository.findByEmailIgnoreCase(email)
+                .filter(outro -> !outro.getId().equals(id))
+                .isPresent();
+        if (emailDeOutraConta) {
+            throw new IllegalStateException("Este e-mail já está cadastrado.");
+        }
         usuarioExistente.setNome(usuario.getNome());
         usuarioExistente.setUsername(usuario.getUsername());
-        usuarioExistente.setEmail(usuario.getEmail());
-        if (usuario.getSenha() != null) {
-            usuarioExistente.setSenha(usuario.getSenha());
+        usuarioExistente.setEmail(email);
+        if (usuario.getSenha() != null && !usuario.getSenha().isBlank()) {
+            validarSenha(usuario.getSenha());
+            usuarioExistente.setSenha(passwordEncoder.encode(usuario.getSenha()));
         }
         usuarioExistente.setAvatarUrl(usuario.getAvatarUrl());
         usuarioExistente.setBio(usuario.getBio());
@@ -80,12 +98,46 @@ public class UsuarioService {
     // Credenciais erradas geram IllegalArgumentException; falhas do banco seguem como outras exceções
 
     public Usuario login(String email, String senha) {
-        Usuario usuario = usuarioRepository.findByEmail(email)
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(normalizarEmail(email))
                 .orElseThrow(() -> new IllegalArgumentException("E-mail ou senha inválidos"));
-        if (!usuario.isCodStatus() || !usuario.getSenha().equals(senha)) {
+        if (!usuario.isCodStatus() || senha == null) {
             throw new IllegalArgumentException("E-mail ou senha inválidos");
         }
-        return usuario;
+        String senhaGravada = usuario.getSenha();
+        if (isHashBCrypt(senhaGravada)) {
+            if (!passwordEncoder.matches(senha, senhaGravada)) {
+                throw new IllegalArgumentException("E-mail ou senha inválidos");
+            }
+            return usuario;
+        }
+        // MIGRAÇÃO TEMPORÁRIA: contas criadas antes do BCrypt guardam a senha em texto puro.
+        // Se a senha confere, troca pelo hash e salva. Remover quando nenhuma conta tiver senha em texto puro.
+        if (!senhaGravada.equals(senha)) {
+            throw new IllegalArgumentException("E-mail ou senha inválidos");
+        }
+        usuario.setSenha(passwordEncoder.encode(senha));
+        return usuarioRepository.save(usuario);
+    }
+
+    // Hash BCrypt começa com $2a$, $2b$ ou $2y$
+
+    private boolean isHashBCrypt(String senha) {
+        return senha.startsWith("$2a$") || senha.startsWith("$2b$") || senha.startsWith("$2y$");
+    }
+
+    // E-mail sempre sem espaços nas pontas e em minúsculas
+
+    private String normalizarEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    // O BCrypt só aceita senhas de até 72 bytes
+
+    private void validarSenha(String senha) {
+        validarCampo(senha, "A senha", 72, true);
+        if (senha.getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new IllegalArgumentException("A senha deve ter no máximo 72 caracteres (acentos contam em dobro).");
+        }
     }
 
     // Confere campo obrigatório e tamanho máximo da coluna no banco

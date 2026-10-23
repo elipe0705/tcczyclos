@@ -9,8 +9,9 @@ import java.util.Optional;
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
-    // O Spring monta a consulta pelo nome do método: SELECT * FROM usuario WHERE email = ?
-    Optional<Usuario> findByEmail(String email);
+    // O Spring monta a consulta pelo nome do método: SELECT * FROM usuario WHERE UPPER(email) = UPPER(?)
+    // Ignora maiúsculas para achar contas antigas gravadas como "Ana@..." ao digitar "ana@..."
+    Optional<Usuario> findByEmailIgnoreCase(String email);
 
     boolean existsByUsername(String username);
 }
