@@ -31,6 +31,8 @@ public class SeguidorService {
     // Quem segue é sempre o usuário do token; o seguido é a outra pessoa
 
     public Seguidor save(Seguidor seguidor, Long usuarioLogadoId) {
+        // O id é gerado pelo banco: um id no corpo faria o save() sobrescrever o registro de outra pessoa
+        seguidor.setId(null);
         validarSeguido(seguidor.getSeguidoId(), usuarioLogadoId);
         seguidor.setSeguidorId(usuarioLogadoId);
         seguidor.setDataCadastro(LocalDateTime.now());

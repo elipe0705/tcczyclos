@@ -25,6 +25,8 @@ public class AnuncioImagemService {
     // Método responsável em criar a imagem do anúncio no banco de dados
 
     public AnuncioImagem save(AnuncioImagem anuncioImagem, Long usuarioLogadoId) {
+        // O id é gerado pelo banco: um id no corpo faria o save() sobrescrever o registro de outra pessoa
+        anuncioImagem.setId(null);
         verificarDonoDoAnuncio(anuncioImagem.getAnuncioId(), usuarioLogadoId);
         anuncioImagem.setCodStatus(true);
         return anuncioImagemRepository.save(anuncioImagem);

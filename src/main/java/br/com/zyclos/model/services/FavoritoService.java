@@ -28,6 +28,8 @@ public class FavoritoService {
     // O dono do favorito é sempre o usuário do token, nunca o usuarioId enviado no corpo
 
     public Favorito save(Favorito favorito, Long usuarioLogadoId) {
+        // O id é gerado pelo banco: um id no corpo faria o save() sobrescrever o registro de outra pessoa
+        favorito.setId(null);
         favorito.setUsuarioId(usuarioLogadoId);
         Optional<Favorito> existente = favoritoRepository.findByUsuarioIdAndAnuncioId(
                 favorito.getUsuarioId(), favorito.getAnuncioId());

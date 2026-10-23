@@ -39,6 +39,8 @@ public class MensagemService {
     // O remetente é sempre o usuário do token, e ele precisa participar da conversa
 
     public Mensagem save(Mensagem mensagem, Long usuarioLogadoId) {
+        // O id é gerado pelo banco: um id no corpo faria o save() sobrescrever o registro de outra pessoa
+        mensagem.setId(null);
         if (mensagem.getConversaId() == null) {
             throw new IllegalArgumentException("Informe a conversa da mensagem (conversaId).");
         }

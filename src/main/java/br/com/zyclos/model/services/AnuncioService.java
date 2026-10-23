@@ -47,6 +47,8 @@ public class AnuncioService {
     // O vendedor é sempre o usuário do token, nunca o vendedorId enviado no corpo
 
     public Anuncio save(Anuncio anuncio, Long usuarioLogadoId) {
+        // O id é gerado pelo banco: um id no corpo faria o save() sobrescrever o registro de outra pessoa
+        anuncio.setId(null);
         anuncio.setVendedorId(usuarioLogadoId);
         if (anuncio.getTipoNegociacao() == null) {
             anuncio.setTipoNegociacao("VENDA");
@@ -54,6 +56,9 @@ public class AnuncioService {
         if (anuncio.getStatus() == null) {
             anuncio.setStatus("ATIVO");
         }
+        validarStatus(anuncio.getStatus());
+        anuncio.setVisualizacoes(0); // contador da API, não do vendedor
+        anuncio.setDataAtualizacao(null);
         anuncio.setDataCadastro(LocalDateTime.now());
         anuncio.setCodStatus(true);
         return anuncioRepository.save(anuncio);
@@ -77,7 +82,7 @@ public class AnuncioService {
     }
 
     // Método responsável em atualizar o anúncio (também usado para desativar: status INATIVO)
-    // O vendedor não muda: o vendedorId do corpo é ignorado
+    // O vendedor não muda: vendedorId, visualizacoes e codStatus do corpo são ignorados
 
     public Anuncio update(Long id, Anuncio anuncio, Long usuarioLogadoId) {
         Anuncio anuncioExistente = findDoDono(id, usuarioLogadoId);
@@ -91,10 +96,21 @@ public class AnuncioService {
         anuncioExistente.setCidade(anuncio.getCidade());
         anuncioExistente.setEstado(anuncio.getEstado());
         anuncioExistente.setTipoNegociacao(anuncio.getTipoNegociacao());
-        anuncioExistente.setStatus(anuncio.getStatus());
+        if (anuncio.getStatus() != null) {
+            validarStatus(anuncio.getStatus());
+            anuncioExistente.setStatus(anuncio.getStatus());
+        }
         anuncioExistente.setCategoriaId(anuncio.getCategoriaId());
         anuncioExistente.setDataAtualizacao(LocalDateTime.now());
         return anuncioRepository.save(anuncioExistente);
+    }
+
+    // O dono só alterna entre ATIVO e INATIVO (excluir pelo site = INATIVO)
+
+    private void validarStatus(String status) {
+        if (!status.equals("ATIVO") && !status.equals("INATIVO")) {
+            throw new IllegalArgumentException("Status inválido: use ATIVO ou INATIVO.");
+        }
     }
 
     // Método responsável em excluir o anúncio ( exclusão física )

@@ -44,6 +44,8 @@ public class UsuarioService {
     // IllegalArgumentException = dado inválido (400); IllegalStateException = e-mail/username já usado (409)
 
     public Usuario save(Usuario usuario) {
+        // O id é gerado pelo banco: um id no corpo faria o save() sobrescrever o registro de outra pessoa
+        usuario.setId(null);
         usuario.setEmail(normalizarEmail(usuario.getEmail()));
         validarCampo(usuario.getNome(), "O nome", 100, true);
         validarCampo(usuario.getUsername(), "O nome de usuário", 30, true);

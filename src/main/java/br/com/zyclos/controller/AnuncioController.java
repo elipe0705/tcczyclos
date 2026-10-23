@@ -49,6 +49,8 @@ public class AnuncioController {
         try {
             Anuncio novo = anuncioService.save(anuncio, usuarioLogadoId);
             return ResponseEntity.status(HttpStatus.CREATED).body(novo);
+        } catch (IllegalArgumentException e) {
+            return erro(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (DataIntegrityViolationException e) {
             return erro(HttpStatus.BAD_REQUEST, "Dados inválidos: confira os campos obrigatórios e os ids relacionados");
         }
@@ -72,6 +74,8 @@ public class AnuncioController {
             return ResponseEntity.ok(anuncioService.update(Long.parseLong(id), anuncio, usuarioLogadoId));
         } catch (NumberFormatException e) {
             return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + id);
+        } catch (IllegalArgumentException e) {
+            return erro(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (AccessDeniedException e) {
             return erro(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (DataIntegrityViolationException e) {

@@ -31,6 +31,8 @@ public class NotificacaoService {
     // Só ADMIN cria pela API (regra em SecurityConfiguration), por isso o usuarioId do corpo é aceito aqui
 
     public Notificacao save(Notificacao notificacao) {
+        // O id é gerado pelo banco: um id no corpo faria o save() sobrescrever o registro de outra pessoa
+        notificacao.setId(null);
         if (notificacao.getTipo() == null) {
             notificacao.setTipo("SISTEMA");
         }

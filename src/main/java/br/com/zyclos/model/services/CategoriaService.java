@@ -22,6 +22,8 @@ public class CategoriaService {
     // Método responsável em criar a categoria no banco de dados
 
     public Categoria save(Categoria categoria) {
+        // O id é gerado pelo banco: um id no corpo faria o save() sobrescrever o registro de outra pessoa
+        categoria.setId(null);
         categoria.setCodStatus(true);
         return categoriaRepository.save(categoria);
     }

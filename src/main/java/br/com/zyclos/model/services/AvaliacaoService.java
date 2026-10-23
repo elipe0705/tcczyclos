@@ -31,6 +31,8 @@ public class AvaliacaoService {
     // O autor é sempre o usuário do token; o avaliado é a outra pessoa
 
     public Avaliacao save(Avaliacao avaliacao, Long usuarioLogadoId) {
+        // O id é gerado pelo banco: um id no corpo faria o save() sobrescrever o registro de outra pessoa
+        avaliacao.setId(null);
         if (avaliacao.getAvaliadoId() == null) {
             throw new IllegalArgumentException("Informe quem está sendo avaliado (avaliadoId).");
         }

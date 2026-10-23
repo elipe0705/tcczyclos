@@ -31,6 +31,8 @@ public class ConversaService {
     // Quem cria é sempre o participante A (vem do token); o participante B é a outra pessoa
 
     public Conversa save(Conversa conversa, Long usuarioLogadoId) {
+        // O id é gerado pelo banco: um id no corpo faria o save() sobrescrever o registro de outra pessoa
+        conversa.setId(null);
         if (conversa.getParticipanteBId() == null) {
             throw new IllegalArgumentException("Informe com quem é a conversa (participanteBId).");
         }
@@ -38,6 +40,7 @@ public class ConversaService {
             throw new IllegalArgumentException("Não é possível abrir uma conversa com você mesmo.");
         }
         conversa.setParticipanteAId(usuarioLogadoId);
+        conversa.setDataAtualizacao(null);
         conversa.setDataCadastro(LocalDateTime.now());
         conversa.setCodStatus(true);
         return conversaRepository.save(conversa);

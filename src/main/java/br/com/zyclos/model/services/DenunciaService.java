@@ -31,6 +31,8 @@ public class DenunciaService {
     // O denunciante é sempre o usuário do token; status e moderação começam vazios (PENDENTE)
 
     public Denuncia save(Denuncia denuncia, Long usuarioLogadoId) {
+        // O id é gerado pelo banco: um id no corpo faria o save() sobrescrever o registro de outra pessoa
+        denuncia.setId(null);
         denuncia.setDenuncianteId(usuarioLogadoId);
         denuncia.setStatus("PENDENTE");
         denuncia.setRespostaModeracao(null);

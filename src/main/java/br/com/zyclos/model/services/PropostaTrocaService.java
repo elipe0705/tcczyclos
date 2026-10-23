@@ -37,6 +37,8 @@ public class PropostaTrocaService {
     // O anúncio oferecido precisa ser do proponente
 
     public PropostaTroca save(PropostaTroca propostaTroca, Long usuarioLogadoId) {
+        // O id é gerado pelo banco: um id no corpo faria o save() sobrescrever o registro de outra pessoa
+        propostaTroca.setId(null);
         if (propostaTroca.getAnuncioDesejadoId() == null || propostaTroca.getAnuncioOferecidoId() == null) {
             throw new IllegalArgumentException("Informe o anúncio desejado e o anúncio oferecido.");
         }
@@ -51,6 +53,7 @@ public class PropostaTrocaService {
         propostaTroca.setProponenteId(usuarioLogadoId);
         propostaTroca.setDestinatarioId(desejado.getVendedorId());
         propostaTroca.setStatus("PENDENTE");
+        propostaTroca.setDataAtualizacao(null);
         propostaTroca.setDataCadastro(LocalDateTime.now());
         propostaTroca.setCodStatus(true);
         return propostaTrocaRepository.save(propostaTroca);
