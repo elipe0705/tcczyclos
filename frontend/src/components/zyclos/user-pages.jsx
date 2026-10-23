@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -38,7 +38,7 @@ import {
   useCatalog,
   useRefreshCatalog,
 } from "@/data/catalog";
-import { api } from "@/lib/api";
+import { api, getToken } from "@/lib/api";
 import { useApp } from "@/context/app-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,11 +78,17 @@ const signupSchema = loginSchema
   });
 export function AuthPage({ signup = false }) {
   const navigate = useNavigate();
-  const { signIn, signUp, notify } = useApp();
+  const { signIn, signUp, signOut, notify } = useApp();
   const [show, setShow] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [photo, setPhoto] = useState("");
+  // Abrir o login ou o cadastro encerra a sessão anterior (apaga token antigo do navegador).
+  // Roda só ao abrir a página: se dependesse de signOut, rodaria de novo após o login e apagaria o token novo
+  useEffect(() => {
+    if (getToken()) signOut();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   async function submit(e) {
     e.preventDefault();
     setError("");
@@ -111,9 +117,14 @@ export function AuthPage({ signup = false }) {
         notify("Conta criada. Bem-vindo à ZYCLOS!");
         void navigate({ to: "/" });
       } catch (err) {
+        setLoading(false);
+        if (err.accountCreated) {
+          notify(err.message);
+          void navigate({ to: "/login" });
+          return;
+        }
         // O back-end já explica o problema (409: e-mail/usuário em uso; 400: campo inválido)
         setError(err.message);
-        setLoading(false);
       }
       return;
     }

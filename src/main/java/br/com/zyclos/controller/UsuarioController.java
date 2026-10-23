@@ -72,6 +72,9 @@ public class UsuarioController {
             return ResponseEntity.ok(new LoginDTO(tokenService.gerarToken(usuario), UsuarioDTO.de(usuario)));
         } catch (IllegalArgumentException e) {
             return erro(HttpStatus.UNAUTHORIZED, "E-mail ou senha inválidos");
+        } catch (IllegalStateException e) {
+            // 5 senhas erradas seguidas: e-mail bloqueado por 15 minutos
+            return erro(HttpStatus.TOO_MANY_REQUESTS, e.getMessage());
         } catch (RuntimeException e) {
             // Qualquer outra falha (ex.: Supabase fora do ar) não é culpa do usuário: registra e devolve 503
             log.error("Erro ao fazer login", e);

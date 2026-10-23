@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +21,10 @@ import java.util.Map;
  3. Body: ( o objeto que será convertido em JSON/XML para o cliente )
 
  @RequestBody : Corpo da requisição (Recebendo um objeto JSON )
+ @AuthenticationPrincipal : id do usuário logado, lido do token JWT (ver JwtAuthenticationFilter)
+
+ Lista completa (GET sem id): só ADMIN (regra em SecurityConfiguration).
+ GET /meus: só os registros do usuário logado. GET/PUT/DELETE por id: só quem participa ou ADMIN (403).
 */
 
 @RestController
@@ -33,33 +39,53 @@ public class DenunciaController {
         return ResponseEntity.ok(denunciaService.findAll());
     }
 
+    // Só os registros do usuário logado (o usuário vem do token, não da URL)
+
+    @GetMapping("/meus")
+    public ResponseEntity<List<Denuncia>> findMeus(@AuthenticationPrincipal Long usuarioLogadoId) {
+        return ResponseEntity.ok(denunciaService.findDoUsuario(usuarioLogadoId));
+    }
+
     @PostMapping
-    public ResponseEntity<Object> save(@RequestBody Denuncia denuncia) {
+    public ResponseEntity<Object> save(@RequestBody Denuncia denuncia, @AuthenticationPrincipal Long usuarioLogadoId) {
         try {
-            Denuncia novo = denunciaService.save(denuncia);
+            Denuncia novo = denunciaService.save(denuncia, usuarioLogadoId);
             return ResponseEntity.status(HttpStatus.CREATED).body(novo);
+        } catch (IllegalArgumentException e) {
+            return erro(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (AccessDeniedException e) {
+            return erro(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (DataIntegrityViolationException e) {
             return erro(HttpStatus.BAD_REQUEST, "Dados inválidos: confira os campos obrigatórios e os ids relacionados");
+        } catch (RuntimeException e) {
+            return erro(HttpStatus.NOT_FOUND, e.getMessage());
         }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> findById(@PathVariable String id) {
+    public ResponseEntity<Object> findById(@PathVariable String id, @AuthenticationPrincipal Long usuarioLogadoId) {
         try {
-            return ResponseEntity.ok(denunciaService.findById(Long.parseLong(id)));
+            return ResponseEntity.ok(denunciaService.findComAcesso(Long.parseLong(id), usuarioLogadoId));
         } catch (NumberFormatException e) {
             return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + id);
+        } catch (AccessDeniedException e) {
+            return erro(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (RuntimeException e) {
             return erro(HttpStatus.NOT_FOUND, "Denúncia não encontrada com o id " + id);
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Object> update(@PathVariable String id, @RequestBody Denuncia denuncia) {
+    public ResponseEntity<Object> update(@PathVariable String id, @RequestBody Denuncia denuncia,
+                                         @AuthenticationPrincipal Long usuarioLogadoId) {
         try {
-            return ResponseEntity.ok(denunciaService.update(Long.parseLong(id), denuncia));
+            return ResponseEntity.ok(denunciaService.update(Long.parseLong(id), denuncia, usuarioLogadoId));
         } catch (NumberFormatException e) {
             return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + id);
+        } catch (IllegalArgumentException e) {
+            return erro(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (AccessDeniedException e) {
+            return erro(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (DataIntegrityViolationException e) {
             return erro(HttpStatus.BAD_REQUEST, "Dados inválidos: confira os campos obrigatórios e os ids relacionados");
         } catch (RuntimeException e) {
@@ -68,9 +94,9 @@ public class DenunciaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> delete(@PathVariable String id) {
+    public ResponseEntity<Object> delete(@PathVariable String id, @AuthenticationPrincipal Long usuarioLogadoId) {
         try {
-            denunciaService.delete(Long.parseLong(id));
+            denunciaService.delete(Long.parseLong(id), usuarioLogadoId);
             return ResponseEntity.ok().body(
                     Map.of(
                             "status", 200,
@@ -79,6 +105,8 @@ public class DenunciaController {
             );
         } catch (NumberFormatException e) {
             return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + id);
+        } catch (AccessDeniedException e) {
+            return erro(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (DataIntegrityViolationException e) {
             return erro(HttpStatus.CONFLICT, "Não é possível excluir: existem registros vinculados ao id " + id);
         } catch (RuntimeException e) {

@@ -82,7 +82,12 @@ export function AppProvider({ children }) {
   const value = useMemo(() => {
     // Login: a API devolve { token, usuario }
     async function signIn(email, senha, remember = false) {
-      const { token, usuario } = await api.post("/usuarios/login", { email, senha });
+      // Sem o token antigo: senha errada aqui é "E-mail ou senha inválidos", não "sessão expirada"
+      const { token, usuario } = await api.post(
+        "/usuarios/login",
+        { email, senha },
+        { auth: false },
+      );
       const logged = toUser(usuario);
       saveSession(logged, token, remember);
       setUser(logged);
@@ -128,7 +133,16 @@ export function AppProvider({ children }) {
           senha: password,
           avatarUrl: avatarUrl || null,
         });
-        return signIn(email, password);
+        try {
+          return await signIn(email, password);
+        } catch {
+          // A conta já existe: tentar o cadastro de novo daria "e-mail já cadastrado"
+          const error = new Error(
+            "Sua conta foi criada, mas não foi possível entrar agora. Entre com seu e-mail e senha.",
+          );
+          error.accountCreated = true;
+          throw error;
+        }
       },
       signOut: () => {
         saveSession(null);

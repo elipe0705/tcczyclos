@@ -1,5 +1,6 @@
 package br.com.zyclos.model.services;
 
+import br.com.zyclos.config.UsuarioLogado;
 import br.com.zyclos.model.entity.Notificacao;
 import br.com.zyclos.model.repository.NotificacaoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,13 +15,20 @@ public class NotificacaoService {
     @Autowired // Injeção de dependência automática
     private NotificacaoRepository notificacaoRepository;
 
-    // Método responsável em listar todas as notificações cadastradas no banco de dados
+    // Método responsável em listar todas as notificações cadastradas no banco de dados (só ADMIN)
 
     public List<Notificacao> findAll() {
         return notificacaoRepository.findAll();
     }
 
+    // Método responsável em listar só as notificações do usuário logado
+
+    public List<Notificacao> findDoUsuario(Long usuarioLogadoId) {
+        return notificacaoRepository.findByUsuarioId(usuarioLogadoId);
+    }
+
     // Método responsável em criar a notificação no banco de dados
+    // Só ADMIN cria pela API (regra em SecurityConfiguration), por isso o usuarioId do corpo é aceito aqui
 
     public Notificacao save(Notificacao notificacao) {
         if (notificacao.getTipo() == null) {
@@ -38,22 +46,33 @@ public class NotificacaoService {
                 .orElseThrow(() -> new RuntimeException("Notificação não encontrada com o id " + id));
     }
 
-    // Método responsável em atualizar a notificação
+    // Método responsável em listar a notificação por ID, só para o dono ou ADMIN (senão 403)
 
-    public Notificacao update(Long id, Notificacao notificacao) {
-        Notificacao notificacaoExistente = findById(id);
-        notificacaoExistente.setTexto(notificacao.getTexto());
-        notificacaoExistente.setTipo(notificacao.getTipo());
-        notificacaoExistente.setDestino(notificacao.getDestino());
+    public Notificacao findComAcesso(Long id, Long usuarioLogadoId) {
+        Notificacao notificacao = findById(id);
+        UsuarioLogado.verificarAcesso(usuarioLogadoId.equals(notificacao.getUsuarioId()),
+                "Esta notificação não é sua.");
+        return notificacao;
+    }
+
+    // Método responsável em atualizar a notificação
+    // O dono só marca como lida; texto, tipo e destino só o ADMIN muda. O destinatário não muda
+
+    public Notificacao update(Long id, Notificacao notificacao, Long usuarioLogadoId) {
+        Notificacao notificacaoExistente = findComAcesso(id, usuarioLogadoId);
         notificacaoExistente.setLida(notificacao.isLida());
-        notificacaoExistente.setUsuarioId(notificacao.getUsuarioId());
+        if (UsuarioLogado.isAdmin()) {
+            notificacaoExistente.setTexto(notificacao.getTexto());
+            notificacaoExistente.setTipo(notificacao.getTipo());
+            notificacaoExistente.setDestino(notificacao.getDestino());
+        }
         return notificacaoRepository.save(notificacaoExistente);
     }
 
     // Método responsável em excluir a notificação ( exclusão física )
 
-    public void delete(Long id) {
-        Notificacao notificacaoExistente = findById(id);
+    public void delete(Long id, Long usuarioLogadoId) {
+        Notificacao notificacaoExistente = findComAcesso(id, usuarioLogadoId);
         notificacaoRepository.delete(notificacaoExistente);
     }
 }

@@ -29,8 +29,9 @@ let onUnauthorized = () => {};
 export function setUnauthorizedHandler(handler) {
   onUnauthorized = handler;
 }
-async function request(path, { method = "GET", body } = {}) {
-  const token = getToken();
+// auth: false = não envia o token nem trata 401 como sessão expirada (usado no login)
+async function request(path, { method = "GET", body, auth = true } = {}) {
+  const token = auth ? getToken() : null;
   const headers = {
     ...(body ? { "Content-Type": "application/json" } : {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -59,7 +60,7 @@ async function request(path, { method = "GET", body } = {}) {
 }
 export const api = {
   get: (path) => request(path),
-  post: (path, body) => request(path, { method: "POST", body }),
+  post: (path, body, options) => request(path, { method: "POST", body, ...options }),
   put: (path, body) => request(path, { method: "PUT", body }),
   delete: (path) => request(path, { method: "DELETE" }),
 };

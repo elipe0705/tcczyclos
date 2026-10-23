@@ -107,10 +107,15 @@ Autenticação (Spring Security + JWT, regras em `config/SecurityConfiguration`)
 
 - Públicas: `POST /usuarios` (cadastro), `POST /usuarios/login`, `GET /anuncios/catalogo`, `GET /anuncios/{id}`,
   `GET /categorias` e `GET /anuncio-imagens` (com `/{id}`).
-- `GET /usuarios` e `GET /favoritos` (listas completas): só `tipoUsuario = ADMIN` (definido direto no banco).
+- Listas completas (`GET /usuarios`, `/anuncios`, `/favoritos`, `/mensagens`, `/conversas`, `/propostas-troca`,
+  `/notificacoes`, `/denuncias`, `/avaliacoes`, `/seguidores`), escrita em `/categorias` e criação de notificações:
+  só `tipoUsuario = ADMIN` (definido direto no banco).
+- Cada usuário vê os seus registros em `GET /{recurso}/meus` (ex.: `/conversas/meus`, `/mensagens/meus`).
+- `GET/PUT/DELETE /{recurso}/{id}`: só quem é dono ou participa do registro, ou ADMIN (senão 403).
 - O resto exige `Authorization: Bearer <token>`.
-- O usuário logado vem sempre do token: `vendedorId` do anúncio e `usuarioId` do favorito enviados no corpo
-  são ignorados. Anúncio (e suas fotos), perfil e favoritos só podem ser alterados pelo dono.
+- O usuário logado vem sempre do token: `vendedorId`, `usuarioId`, `remetenteId`, `participanteAId`,
+  `proponenteId`, `denuncianteId`, `autorId` e `seguidorId` enviados no corpo são ignorados.
+- Login: depois de 5 senhas erradas seguidas para o mesmo e-mail, ele fica bloqueado por 15 minutos (429).
 
 Os relacionamentos são enviados pelo id (ex.: `"categoriaId": 3`).
 
@@ -121,6 +126,7 @@ Respostas de erro:
 | 400 | Id não numérico, campo obrigatório faltando ou id relacionado inexistente |
 | 401 | Sem token, token inválido/expirado, ou e-mail/senha errados no login |
 | 403 | O registro é de outro usuário, ou a rota é só para ADMIN |
+| 429 | Login bloqueado por 15 minutos depois de 5 senhas erradas seguidas |
 | 404 | Registro não encontrado |
 | 409 | Exclusão bloqueada porque outros registros dependem deste |
 

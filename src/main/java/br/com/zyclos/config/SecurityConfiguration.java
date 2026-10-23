@@ -22,9 +22,10 @@ import java.util.Map;
 /*
  Regras de acesso da API:
  - Públicas: cadastro, login, catálogo e detalhe do anúncio (com categorias e fotos, que o catálogo usa).
- - GET /usuarios e GET /favoritos (listas completas): só ADMIN.
+ - Listas completas (GET /usuarios, /mensagens, /conversas etc.), escrita de categorias e criação de
+   notificações: só ADMIN.
  - Todo o resto: precisa de token válido (401 se faltar ou for inválido).
- Quem é dono de quê (anúncio, perfil, favorito) é conferido nos services, com o id que vem do token (403).
+ Quem é dono ou participa de cada registro é conferido nos services, com o id que vem do token (403).
 */
 
 @Configuration
@@ -49,7 +50,18 @@ public class SecurityConfiguration {
                                 "/api/v1/anuncios/catalogo", "/api/v1/anuncios/{id}",
                                 "/api/v1/categorias", "/api/v1/categorias/{id}",
                                 "/api/v1/anuncio-imagens", "/api/v1/anuncio-imagens/{id}").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/usuarios", "/api/v1/favoritos").hasRole("ADMIN")
+                        // Listas completas: só ADMIN (cada usuário usa GET /{recurso}/meus)
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/usuarios", "/api/v1/anuncios", "/api/v1/favoritos",
+                                "/api/v1/mensagens", "/api/v1/conversas", "/api/v1/propostas-troca",
+                                "/api/v1/notificacoes", "/api/v1/denuncias", "/api/v1/avaliacoes",
+                                "/api/v1/seguidores").hasRole("ADMIN")
+                        // Categorias: leitura pública (acima), escrita só ADMIN
+                        .requestMatchers(HttpMethod.POST, "/api/v1/categorias").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/categorias/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/categorias/{id}").hasRole("ADMIN")
+                        // Notificações são criadas pelo sistema/moderação, não por usuários comuns
+                        .requestMatchers(HttpMethod.POST, "/api/v1/notificacoes").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .exceptionHandling(erros -> erros
                         .authenticationEntryPoint((request, response, e) -> erro(response, objectMapper,

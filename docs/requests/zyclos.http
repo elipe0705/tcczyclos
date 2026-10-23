@@ -129,6 +129,48 @@ Authorization: Bearer {{token}}
 GET {{api}}/favoritos/meus
 Authorization: Bearer {{token}}
 
+### Abrir conversa com o Bruno (a Ana, do token, é o participante A). Troque o id pelo do Bruno
+POST {{api}}/conversas
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "participanteBId": 2
+}
+
+### Enviar mensagem (o remetente é quem está no token)
+POST {{api}}/mensagens
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "conversaId": 1,
+  "conteudo": "Oi! A jaqueta ainda está disponível?"
+}
+
+### Minhas conversas e mensagens (mesmo padrão: /propostas-troca/meus, /notificacoes/meus, /denuncias/meus...)
+GET {{api}}/conversas/meus
+Authorization: Bearer {{token}}
+
+### Mensagens das minhas conversas
+GET {{api}}/mensagens/meus
+Authorization: Bearer {{token}}
+
+### Ver uma conversa da qual você não participa -> 403 (só participantes ou ADMIN)
+# Troque o id por uma conversa entre outras pessoas (a conversa Ana-Bruno acima daria 200 para os dois)
+GET {{api}}/conversas/1
+Authorization: Bearer {{token}}
+
+### Criar categoria com usuário comum -> 403 (só ADMIN)
+POST {{api}}/categorias
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Acessórios",
+  "slug": "acessorios"
+}
+
 ### Excluir anúncio por ID (só o dono)
 DELETE {{api}}/anuncios/1
 Authorization: Bearer {{token}}

@@ -8,12 +8,25 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class UsuarioService {
+
+    // Limite de tentativas de login: depois de 5 senhas erradas seguidas para o mesmo e-mail, bloqueia por 15 min.
+    // Fica em memória (zera quando a API reinicia), guardado por e-mail já em minúsculas
+    private static final int MAXIMO_TENTATIVAS_LOGIN = 5;
+    private static final Duration TEMPO_BLOQUEIO_LOGIN = Duration.ofMinutes(15);
+    private static final Map<String, TentativasLogin> TENTATIVAS_LOGIN = new ConcurrentHashMap<>();
+
+    private record TentativasLogin(int falhas, Instant bloqueadoAte) {
+    }
 
     @Autowired // Injeção de dependência automática
     private UsuarioRepository usuarioRepository;
@@ -106,8 +119,26 @@ public class UsuarioService {
     // Método responsável em validar o login (e-mail e senha) do usuário
     // Credenciais erradas geram IllegalArgumentException; falhas do banco seguem como outras exceções
 
+    // E-mail bloqueado por excesso de tentativas gera IllegalStateException (429)
+
     public Usuario login(String email, String senha) {
-        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(normalizarEmail(email))
+        String emailNormalizado = normalizarEmail(email);
+        if (emailNormalizado == null) {
+            throw new IllegalArgumentException("E-mail ou senha inválidos");
+        }
+        verificarBloqueioLogin(emailNormalizado);
+        try {
+            Usuario usuario = conferirCredenciais(emailNormalizado, senha);
+            TENTATIVAS_LOGIN.remove(emailNormalizado); // acertou: zera o contador
+            return usuario;
+        } catch (IllegalArgumentException e) {
+            registrarFalhaLogin(emailNormalizado);
+            throw e;
+        }
+    }
+
+    private Usuario conferirCredenciais(String email, String senha) {
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new IllegalArgumentException("E-mail ou senha inválidos"));
         if (!usuario.isCodStatus() || senha == null) {
             throw new IllegalArgumentException("E-mail ou senha inválidos");
@@ -126,6 +157,28 @@ public class UsuarioService {
         }
         usuario.setSenha(passwordEncoder.encode(senha));
         return usuarioRepository.save(usuario);
+    }
+
+    private void verificarBloqueioLogin(String email) {
+        TentativasLogin tentativas = TENTATIVAS_LOGIN.get(email);
+        if (tentativas == null || tentativas.bloqueadoAte() == null) {
+            return;
+        }
+        Instant agora = Instant.now();
+        if (agora.isBefore(tentativas.bloqueadoAte())) {
+            long minutos = (Duration.between(agora, tentativas.bloqueadoAte()).toSeconds() + 59) / 60;
+            throw new IllegalStateException("Muitas tentativas de login sem sucesso. Tente novamente em "
+                    + minutos + " minuto(s).");
+        }
+        TENTATIVAS_LOGIN.remove(email); // o bloqueio acabou: começa a contar do zero
+    }
+
+    private void registrarFalhaLogin(String email) {
+        TENTATIVAS_LOGIN.compute(email, (chave, atual) -> {
+            int falhas = (atual == null ? 0 : atual.falhas()) + 1;
+            Instant bloqueadoAte = falhas >= MAXIMO_TENTATIVAS_LOGIN ? Instant.now().plus(TEMPO_BLOQUEIO_LOGIN) : null;
+            return new TentativasLogin(falhas, bloqueadoAte);
+        });
     }
 
     // Só o próprio usuário mexe no seu perfil

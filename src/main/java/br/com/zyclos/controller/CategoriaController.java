@@ -33,6 +33,8 @@ public class CategoriaController {
         return ResponseEntity.ok(categoriaService.findAll());
     }
 
+    // Leitura pública; criar, editar e excluir: só ADMIN (regra em SecurityConfiguration)
+
     @PostMapping
     public ResponseEntity<Object> save(@RequestBody Categoria categoria) {
         try {
