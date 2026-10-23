@@ -19,12 +19,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { formatPrice } from "@/data/catalog";
+import { formatPrice, useCatalog } from "@/data/catalog";
 import { useApp } from "@/context/app-context";
 export function ProductDetail({ product }) {
   const [image, setImage] = useState(product.image);
   const { favorites, toggleFavorite, notify, user } = useApp();
-  const mine = user?.id === product.sellerId;
+  const { offline } = useCatalog();
+  // Só com usuário logado e dados reais; sem o != null, undefined === undefined liberaria o botão
+  const mine = !offline && user?.id != null && user.id === product.sellerId;
   const liked = favorites.includes(product.id);
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">

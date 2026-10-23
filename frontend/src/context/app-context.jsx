@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { api } from "@/lib/api";
 const AppContext = createContext(undefined);
 const SESSION_KEY = "zyclos.usuario";
@@ -33,6 +41,8 @@ function saveSession(user, remember) {
 export function AppProvider({ children }) {
   // { anuncioId: favoritoId } do usuário logado
   const [favoriteIds, setFavoriteIds] = useState({});
+  // ids de anúncios com favoritar/desfavoritar em andamento
+  const pendingFavorites = useRef(new Set());
   const [toast, setToast] = useState("");
   const [user, setUser] = useState(null);
   const notify = useCallback((message) => {
@@ -67,6 +77,9 @@ export function AppProvider({ children }) {
           notify("Entre na sua conta para salvar favoritos.");
           return;
         }
+        // Ignora cliques enquanto a requisição deste anúncio ainda está em andamento
+        if (pendingFavorites.current.has(id)) return;
+        pendingFavorites.current.add(id);
         const favoritoId = favoriteIds[id];
         try {
           if (favoritoId) {
@@ -83,6 +96,8 @@ export function AppProvider({ children }) {
           }
         } catch (error) {
           notify(error.message);
+        } finally {
+          pendingFavorites.current.delete(id);
         }
       },
       toast,
@@ -95,12 +110,13 @@ export function AppProvider({ children }) {
         setUser(logged);
         return logged;
       },
-      signUp: async ({ name, username, email, password }) => {
+      signUp: async ({ name, username, email, password, avatarUrl }) => {
         const usuario = await api.post("/usuarios", {
           nome: name,
           username,
           email,
           senha: password,
+          avatarUrl: avatarUrl || null,
         });
         const logged = toUser(usuario);
         saveSession(logged, false);

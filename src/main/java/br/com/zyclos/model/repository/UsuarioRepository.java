@@ -11,4 +11,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     // O Spring monta a consulta pelo nome do método: SELECT * FROM usuario WHERE email = ?
     Optional<Usuario> findByEmail(String email);
+
+    boolean existsByUsername(String username);
 }

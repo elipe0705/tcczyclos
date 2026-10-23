@@ -58,13 +58,18 @@ const loginSchema = z.object({
 });
 const signupSchema = loginSchema
   .extend({
-    name: z.string().trim().min(2, "Digite seu nome completo.").max(100),
+    name: z
+      .string()
+      .trim()
+      .min(2, "Digite seu nome completo.")
+      .max(100, "O nome deve ter no máximo 100 caracteres."),
     username: z
       .string()
       .trim()
       .min(3, "O nome de usuário deve ter ao menos 3 caracteres.")
-      .max(30)
+      .max(30, "O nome de usuário deve ter no máximo 30 caracteres.")
       .regex(/^[a-zA-Z0-9._]+$/, "Use apenas letras, números, ponto ou sublinhado."),
+    avatarUrl: z.string().trim().max(500, "O link da foto deve ter no máximo 500 caracteres."),
     confirm: z.string(),
   })
   .refine((data) => data.password === data.confirm, {
@@ -77,8 +82,7 @@ export function AuthPage({ signup = false }) {
   const [show, setShow] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [photo, setPhoto] = useState(null);
-  const photoUrl = useRef(null);
+  const [photo, setPhoto] = useState("");
   async function submit(e) {
     e.preventDefault();
     setError("");
@@ -90,6 +94,7 @@ export function AuthPage({ signup = false }) {
         ? {
             name: String(form.get("name") ?? ""),
             username: String(form.get("username") ?? ""),
+            avatarUrl: photo,
             confirm: String(form.get("confirm") ?? ""),
           }
         : {}),
@@ -106,9 +111,8 @@ export function AuthPage({ signup = false }) {
         notify("Conta criada. Bem-vindo à ZYCLOS!");
         void navigate({ to: "/" });
       } catch (err) {
-        setError(
-          err.status === 400 ? "Este e-mail ou nome de usuário já está cadastrado." : err.message,
-        );
+        // O back-end já explica o problema (409: e-mail/usuário em uso; 400: campo inválido)
+        setError(err.message);
         setLoading(false);
       }
       return;
@@ -127,13 +131,6 @@ export function AuthPage({ signup = false }) {
       setError(err.message);
       setLoading(false);
     }
-  }
-  function choosePhoto(event) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (photoUrl.current) URL.revokeObjectURL(photoUrl.current);
-    photoUrl.current = URL.createObjectURL(file);
-    setPhoto(photoUrl.current);
   }
   function googleDemo() {
     notify("Entrar com Google ainda não está disponível. Use e-mail e senha.");
@@ -191,28 +188,27 @@ export function AuthPage({ signup = false }) {
                   autoComplete="username"
                   icon={<UserPlus />}
                 />
-                <label className="text-sm font-semibold">
-                  Foto de perfil{" "}
-                  <span className="font-normal text-muted-foreground">(opcional)</span>
-                  <span className="mt-2 flex h-14 cursor-pointer items-center gap-3 rounded-md border border-dashed bg-card px-3 text-muted-foreground hover:border-secondary">
-                    {photo ? (
-                      <img
-                        src={photo}
-                        alt="Prévia da foto de perfil"
-                        className="size-9 rounded-full object-cover"
-                      />
-                    ) : (
-                      <Camera className="size-4" />
-                    )}{" "}
-                    {photo ? "Foto selecionada" : "Escolher foto"}
-                    <input
-                      className="sr-only"
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      onChange={choosePhoto}
+                {/* A foto é um link (URL), gravado em usuario.avatar_url, como a foto do anúncio */}
+                <div className="flex items-end gap-3">
+                  <div className="min-w-0 flex-1">
+                    <Field
+                      label="Link da foto de perfil (opcional)"
+                      name="avatarUrl"
+                      type="url"
+                      required={false}
+                      icon={<Camera />}
+                      value={photo}
+                      onChange={setPhoto}
                     />
-                  </span>
-                </label>
+                  </div>
+                  {photo.trim() && (
+                    <img
+                      src={photo.trim()}
+                      alt="Prévia da foto de perfil"
+                      className="size-11 shrink-0 rounded-full object-cover"
+                    />
+                  )}
+                </div>
               </>
             )}
             <Field label="E-mail" name="email" type="email" autoComplete="email" icon={<Mail />} />
@@ -795,29 +791,45 @@ const emptyListing = {
   price: "",
   imageUrl: "",
 };
+// Campos podem vir nulos/vazios do banco (ex.: anúncio criado pelo arquivo .http): sempre virar string
 function fromProduct(p) {
   return {
-    title: p.name,
+    title: p.name ?? "",
     categoryId: String(p.categoryId ?? ""),
-    brand: p.brand === "Sem marca" ? "" : p.brand,
-    size: p.size,
-    condition: p.condition,
-    style: p.style,
-    city: p.city,
-    state: p.state,
-    description: p.description,
-    deal: p.deal,
+    brand: !p.brand || p.brand === "Sem marca" ? "" : p.brand,
+    size: p.size ?? "",
+    condition: p.condition ?? "",
+    style: p.style ?? "",
+    city: p.city ?? "",
+    state: p.state ?? "",
+    description: p.description ?? "",
+    deal: p.deal ?? "Venda",
     price: p.price == null ? "" : String(p.price),
     imageUrl: p.imageIds?.length ? p.images[0] : "",
   };
 }
+// Tamanho máximo das colunas no banco: [campo, máximo, etapa, nome exibido]
+const listingLimits = [
+  ["title", 120, 1, "O título"],
+  ["brand", 60, 1, "A marca"],
+  ["size", 20, 1, "O tamanho"],
+  ["style", 40, 1, "O estilo"],
+  ["city", 120, 1, "A cidade"],
+  ["description", 2000, 1, "A descrição"],
+  ["imageUrl", 500, 2, "O link da foto"],
+];
 // Primeira etapa com problema, para levar o usuário direto ao campo
 function validateListing(v) {
   if (!v.title.trim()) return [1, "Informe o título do anúncio."];
   if (!v.categoryId) return [1, "Escolha uma categoria."];
   if (!v.size.trim()) return [1, "Informe o tamanho."];
   if (!v.description.trim()) return [1, "Escreva uma descrição para a peça."];
+  const tooLong = listingLimits.find(([field, max]) => v[field].trim().length > max);
+  if (tooLong) return [tooLong[2], `${tooLong[3]} deve ter no máximo ${tooLong[1]} caracteres.`];
   if (v.deal !== "Troca" && !(Number(v.price) > 0)) return [3, "Informe um preço válido."];
+  // preco é numeric(10,2) no banco
+  if (v.deal !== "Troca" && Number(v.price) >= 100_000_000)
+    return [3, "O preço deve ser menor que R$ 100.000.000,00."];
   return null;
 }
 function toAnuncio(v, vendedorId, status) {
@@ -846,6 +858,10 @@ export function ListingForm({ edit = false, id }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
+  // Trava contra clique duplo: o estado "saving" só desabilita o botão depois da nova renderização
+  const busy = useRef(false);
+  // Anúncio já gravado cuja foto falhou: a nova tentativa atualiza este id em vez de criar outro
+  const createdId = useRef(null);
   const [error, setError] = useState("");
   const values = form ?? (existing ? fromProduct(existing) : emptyListing);
   const set = (field) => (value) => setForm({ ...values, [field]: value });
@@ -871,19 +887,23 @@ export function ListingForm({ edit = false, id }) {
           ? ["Este anúncio não é seu", "Só quem publicou pode editar.", "/anuncios", "Ver anúncios"]
           : null;
   async function save() {
+    if (busy.current) return;
     const invalid = validateListing(values);
     if (invalid) {
       setStep(invalid[0]);
       setError(invalid[1]);
       return;
     }
+    busy.current = true;
     setError("");
     setSaving(true);
     const body = toAnuncio(values, user.id, existing?.status ?? "ATIVO");
+    const anuncioId = edit ? id : createdId.current;
     try {
-      const saved = edit
-        ? await api.put(`/anuncios/${id}`, body)
+      const saved = anuncioId
+        ? await api.put(`/anuncios/${anuncioId}`, body)
         : await api.post("/anuncios", body);
+      if (!edit) createdId.current = saved.id;
       const imageId = existing?.imageIds?.[0];
       const image = { url: preview, principal: true, ordem: 0, anuncioId: saved.id };
       if (preview && imageId) await api.put(`/anuncio-imagens/${imageId}`, image);
@@ -895,6 +915,7 @@ export function ListingForm({ edit = false, id }) {
     } catch (err) {
       setError(err.message);
       setSaving(false);
+      busy.current = false;
     }
   }
   async function remove() {

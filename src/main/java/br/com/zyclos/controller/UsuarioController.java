@@ -2,6 +2,8 @@ package br.com.zyclos.controller;
 
 import br.com.zyclos.model.entity.Usuario;
 import br.com.zyclos.model.services.UsuarioService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -25,6 +27,8 @@ import java.util.Map;
 @RequestMapping("/api/v1/usuarios")
 public class UsuarioController {
 
+    private static final Logger log = LoggerFactory.getLogger(UsuarioController.class);
+
     @Autowired
     private UsuarioService usuarioService;
 
@@ -38,6 +42,10 @@ public class UsuarioController {
         try {
             Usuario novo = usuarioService.save(usuario);
             return ResponseEntity.status(HttpStatus.CREATED).body(novo);
+        } catch (IllegalArgumentException e) {
+            return erro(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (IllegalStateException e) {
+            return erro(HttpStatus.CONFLICT, e.getMessage());
         } catch (DataIntegrityViolationException e) {
             return erro(HttpStatus.BAD_REQUEST, "Dados inválidos: confira os campos obrigatórios e os ids relacionados");
         }
@@ -49,8 +57,12 @@ public class UsuarioController {
     public ResponseEntity<Object> login(@RequestBody Map<String, String> credenciais) {
         try {
             return ResponseEntity.ok(usuarioService.login(credenciais.get("email"), credenciais.get("senha")));
-        } catch (RuntimeException e) {
+        } catch (IllegalArgumentException e) {
             return erro(HttpStatus.UNAUTHORIZED, "E-mail ou senha inválidos");
+        } catch (RuntimeException e) {
+            // Qualquer outra falha (ex.: Supabase fora do ar) não é culpa do usuário: registra e devolve 503
+            log.error("Erro ao fazer login", e);
+            return erro(HttpStatus.SERVICE_UNAVAILABLE, "Serviço indisponível. Tente novamente em instantes.");
         }
     }
 
