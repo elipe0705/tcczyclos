@@ -1,8 +1,15 @@
-### Listar categorias
-GET http://localhost:8080/api/v1/categorias
+# Exemplos para o REST Client (VS Code).
+# Rotas públicas: cadastro, login, catálogo, detalhe do anúncio, categorias e fotos.
+# As outras precisam do cabeçalho "Authorization: Bearer <token>": rode primeiro o "Login" (e o "Login do Bruno").
+@api = http://localhost:8080/api/v1
+@token = {{login.response.body.token}}
+@tokenBruno = {{loginBruno.response.body.token}}
 
-### Criar usuário
-POST http://localhost:8080/api/v1/usuarios
+### Listar categorias (pública)
+GET {{api}}/categorias
+
+### Criar usuário (pública)
+POST {{api}}/usuarios
 Content-Type: application/json
 
 {
@@ -14,8 +21,9 @@ Content-Type: application/json
   "estado": "SP"
 }
 
-### Login
-POST http://localhost:8080/api/v1/usuarios/login
+### Login (pública): devolve { token, usuario }
+# @name login
+POST {{api}}/usuarios/login
 Content-Type: application/json
 
 {
@@ -23,12 +31,35 @@ Content-Type: application/json
   "senha": "zyclos123"
 }
 
-### Listar usuários
-GET http://localhost:8080/api/v1/usuarios
-
-### Criar anúncio
-POST http://localhost:8080/api/v1/anuncios
+### Criar um segundo usuário, para testar o 403
+POST {{api}}/usuarios
 Content-Type: application/json
+
+{
+  "nome": "Bruno Lima",
+  "username": "brunolima",
+  "email": "bruno@zyclos.app",
+  "senha": "zyclos123"
+}
+
+### Login do Bruno
+# @name loginBruno
+POST {{api}}/usuarios/login
+Content-Type: application/json
+
+{
+  "email": "bruno@zyclos.app",
+  "senha": "zyclos123"
+}
+
+### Listar usuários (só ADMIN: com usuário comum dá 403)
+GET {{api}}/usuarios
+Authorization: Bearer {{token}}
+
+### Criar anúncio (o vendedor é quem está no token)
+POST {{api}}/anuncios
+Content-Type: application/json
+Authorization: Bearer {{token}}
 
 {
   "titulo": "Jaqueta jeans oversized",
@@ -38,22 +69,23 @@ Content-Type: application/json
   "tamanho": "M",
   "condicao": "SEMINOVO",
   "tipoNegociacao": "VENDA",
-  "categoriaId": 3,
-  "vendedorId": 1
+  "categoriaId": 3
 }
 
-### Listar anúncios
-GET http://localhost:8080/api/v1/anuncios
+### Listar anúncios (todos, inclusive inativos: precisa de login)
+GET {{api}}/anuncios
+Authorization: Bearer {{token}}
 
-### Catálogo do site (anúncios ativos + nome do vendedor, sem e-mail)
-GET http://localhost:8080/api/v1/anuncios/catalogo
+### Catálogo do site (pública: anúncios ativos + nome do vendedor, sem e-mail)
+GET {{api}}/anuncios/catalogo
 
-### Listar anúncio por ID
-GET http://localhost:8080/api/v1/anuncios/1
+### Listar anúncio por ID (pública)
+GET {{api}}/anuncios/1
 
-### Atualizar anúncio
-PUT http://localhost:8080/api/v1/anuncios/1
+### Atualizar anúncio (só o dono). Troque o id pelo do anúncio criado acima
+PUT {{api}}/anuncios/1
 Content-Type: application/json
+Authorization: Bearer {{token}}
 
 {
   "titulo": "Jaqueta jeans oversized",
@@ -64,21 +96,39 @@ Content-Type: application/json
   "condicao": "SEMINOVO",
   "tipoNegociacao": "VENDA",
   "status": "ATIVO",
-  "categoriaId": 3,
-  "vendedorId": 1
+  "categoriaId": 3
 }
 
-### Favoritar anúncio
-POST http://localhost:8080/api/v1/favoritos
+### Atualizar anúncio SEM token -> 401
+PUT {{api}}/anuncios/1
 Content-Type: application/json
 
 {
-  "usuarioId": 1,
+  "titulo": "Tentativa sem login"
+}
+
+### Atualizar anúncio da Ana com o token do Bruno -> 403
+PUT {{api}}/anuncios/1
+Content-Type: application/json
+Authorization: Bearer {{tokenBruno}}
+
+{
+  "titulo": "Tentativa de outro usuário"
+}
+
+### Favoritar anúncio (o usuário é quem está no token)
+POST {{api}}/favoritos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
   "anuncioId": 1
 }
 
-### Favoritos de um usuário
-GET http://localhost:8080/api/v1/favoritos/usuario/1
+### Meus favoritos
+GET {{api}}/favoritos/meus
+Authorization: Bearer {{token}}
 
-### Excluir anúncio por ID
-DELETE http://localhost:8080/api/v1/anuncios/1
+### Excluir anúncio por ID (só o dono)
+DELETE {{api}}/anuncios/1
+Authorization: Bearer {{token}}

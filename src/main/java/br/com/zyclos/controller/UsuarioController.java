@@ -1,7 +1,9 @@
 package br.com.zyclos.controller;
 
+import br.com.zyclos.model.dto.LoginDTO;
 import br.com.zyclos.model.dto.UsuarioDTO;
 import br.com.zyclos.model.entity.Usuario;
+import br.com.zyclos.model.services.TokenService;
 import br.com.zyclos.model.services.UsuarioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +26,7 @@ import java.util.Map;
  3. Body: ( o objeto que será convertido em JSON/XML para o cliente )
 
  @RequestBody : Corpo da requisição (Recebendo um objeto JSON )
+ @AuthenticationPrincipal : id do usuário logado, lido do token JWT (ver JwtAuthenticationFilter)
 */
 
 @RestController
@@ -33,7 +38,11 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
+    @Autowired
+    private TokenService tokenService;
+
     // A resposta usa UsuarioDTO: nunca devolve a senha
+    // Lista completa: só ADMIN (regra em SecurityConfiguration)
 
     @GetMapping
     public ResponseEntity<List<UsuarioDTO>> findAll() {
@@ -54,12 +63,13 @@ public class UsuarioController {
         }
     }
 
-    // Login: recebe { "email": "...", "senha": "..." } e devolve o usuário (sem a senha)
+    // Login: recebe { "email": "...", "senha": "..." } e devolve { "token": "...", "usuario": {...} } (sem a senha)
 
     @PostMapping("/login")
     public ResponseEntity<Object> login(@RequestBody Map<String, String> credenciais) {
         try {
-            return ResponseEntity.ok(UsuarioDTO.de(usuarioService.login(credenciais.get("email"), credenciais.get("senha"))));
+            Usuario usuario = usuarioService.login(credenciais.get("email"), credenciais.get("senha"));
+            return ResponseEntity.ok(new LoginDTO(tokenService.gerarToken(usuario), UsuarioDTO.de(usuario)));
         } catch (IllegalArgumentException e) {
             return erro(HttpStatus.UNAUTHORIZED, "E-mail ou senha inválidos");
         } catch (RuntimeException e) {
@@ -70,22 +80,27 @@ public class UsuarioController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> findById(@PathVariable String id) {
+    public ResponseEntity<Object> findById(@PathVariable String id, @AuthenticationPrincipal Long usuarioLogadoId) {
         try {
-            return ResponseEntity.ok(UsuarioDTO.de(usuarioService.findById(Long.parseLong(id))));
+            return ResponseEntity.ok(UsuarioDTO.de(usuarioService.findProprio(Long.parseLong(id), usuarioLogadoId)));
         } catch (NumberFormatException e) {
             return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + id);
+        } catch (AccessDeniedException e) {
+            return erro(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (RuntimeException e) {
             return erro(HttpStatus.NOT_FOUND, "Usuário não encontrado com o id " + id);
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Object> update(@PathVariable String id, @RequestBody Usuario usuario) {
+    public ResponseEntity<Object> update(@PathVariable String id, @RequestBody Usuario usuario,
+                                         @AuthenticationPrincipal Long usuarioLogadoId) {
         try {
-            return ResponseEntity.ok(UsuarioDTO.de(usuarioService.update(Long.parseLong(id), usuario)));
+            return ResponseEntity.ok(UsuarioDTO.de(usuarioService.update(Long.parseLong(id), usuario, usuarioLogadoId)));
         } catch (NumberFormatException e) {
             return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + id);
+        } catch (AccessDeniedException e) {
+            return erro(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (IllegalArgumentException e) {
             return erro(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (IllegalStateException e) {
@@ -98,9 +113,9 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> delete(@PathVariable String id) {
+    public ResponseEntity<Object> delete(@PathVariable String id, @AuthenticationPrincipal Long usuarioLogadoId) {
         try {
-            usuarioService.delete(Long.parseLong(id));
+            usuarioService.delete(Long.parseLong(id), usuarioLogadoId);
             return ResponseEntity.ok().body(
                     Map.of(
                             "status", 200,
@@ -109,6 +124,8 @@ public class UsuarioController {
             );
         } catch (NumberFormatException e) {
             return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + id);
+        } catch (AccessDeniedException e) {
+            return erro(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (DataIntegrityViolationException e) {
             return erro(HttpStatus.CONFLICT, "Não é possível excluir: existem registros vinculados ao id " + id);
         } catch (RuntimeException e) {

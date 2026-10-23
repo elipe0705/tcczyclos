@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +22,7 @@ import java.util.Map;
  3. Body: ( o objeto que será convertido em JSON/XML para o cliente )
 
  @RequestBody : Corpo da requisição (Recebendo um objeto JSON )
+ @AuthenticationPrincipal : id do usuário logado, lido do token JWT (ver JwtAuthenticationFilter)
 */
 
 @RestController
@@ -42,9 +45,9 @@ public class AnuncioController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> save(@RequestBody Anuncio anuncio) {
+    public ResponseEntity<Object> save(@RequestBody Anuncio anuncio, @AuthenticationPrincipal Long usuarioLogadoId) {
         try {
-            Anuncio novo = anuncioService.save(anuncio);
+            Anuncio novo = anuncioService.save(anuncio, usuarioLogadoId);
             return ResponseEntity.status(HttpStatus.CREATED).body(novo);
         } catch (DataIntegrityViolationException e) {
             return erro(HttpStatus.BAD_REQUEST, "Dados inválidos: confira os campos obrigatórios e os ids relacionados");
@@ -63,11 +66,14 @@ public class AnuncioController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Object> update(@PathVariable String id, @RequestBody Anuncio anuncio) {
+    public ResponseEntity<Object> update(@PathVariable String id, @RequestBody Anuncio anuncio,
+                                         @AuthenticationPrincipal Long usuarioLogadoId) {
         try {
-            return ResponseEntity.ok(anuncioService.update(Long.parseLong(id), anuncio));
+            return ResponseEntity.ok(anuncioService.update(Long.parseLong(id), anuncio, usuarioLogadoId));
         } catch (NumberFormatException e) {
             return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + id);
+        } catch (AccessDeniedException e) {
+            return erro(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (DataIntegrityViolationException e) {
             return erro(HttpStatus.BAD_REQUEST, "Dados inválidos: confira os campos obrigatórios e os ids relacionados");
         } catch (RuntimeException e) {
@@ -76,9 +82,9 @@ public class AnuncioController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> delete(@PathVariable String id) {
+    public ResponseEntity<Object> delete(@PathVariable String id, @AuthenticationPrincipal Long usuarioLogadoId) {
         try {
-            anuncioService.delete(Long.parseLong(id));
+            anuncioService.delete(Long.parseLong(id), usuarioLogadoId);
             return ResponseEntity.ok().body(
                     Map.of(
                             "status", 200,
@@ -87,6 +93,8 @@ public class AnuncioController {
             );
         } catch (NumberFormatException e) {
             return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + id);
+        } catch (AccessDeniedException e) {
+            return erro(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (DataIntegrityViolationException e) {
             return erro(HttpStatus.CONFLICT, "Não é possível excluir: existem registros vinculados ao id " + id);
         } catch (RuntimeException e) {

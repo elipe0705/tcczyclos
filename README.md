@@ -24,10 +24,11 @@ O que o front-end já usa da API:
 | --- | --- |
 | Login / Cadastro | `POST /usuarios/login`, `POST /usuarios` |
 | Início, Anúncios, Detalhe | `GET /anuncios/catalogo`, `/categorias`, `/anuncio-imagens` |
-| Favoritos (coração) | `GET /favoritos/usuario/{id}`, `POST /favoritos`, `DELETE /favoritos/{id}` |
+| Favoritos (coração) | `GET /favoritos/meus`, `POST /favoritos`, `DELETE /favoritos/{id}` |
 | Criar / Editar / Excluir anúncio | `POST/PUT /anuncios`, `POST/PUT/DELETE /anuncio-imagens` |
 
-- A sessão fica no navegador ("Lembrar de mim" mantém o login depois de fechar a aba).
+- O login devolve um token JWT, guardado no navegador ("Lembrar de mim" mantém depois de fechar a aba) e
+  enviado em toda requisição (`Authorization: Bearer <token>`). Token expirado (24 h) leva de volta ao login.
 - Excluir um anúncio pelo site muda o `status` para `INATIVO` (não apaga a linha, para não quebrar favoritos
   e conversas). O catálogo mostra só anúncios `ATIVO`.
 - A foto do anúncio é um link (URL) de imagem, gravado em `anuncio_imagem`.
@@ -58,6 +59,9 @@ O banco fica no Supabase (PostgreSQL), projeto `zyclos`, região São Paulo.
    - Clique em **Connect** (topo do painel) → **Session pooler** e copie só o **host**
      (algo como `aws-X-sa-east-1.pooler.supabase.com`). Cole em `DB_URL` no lugar de `HOST_DO_SESSION_POOLER`.
    - Coloque a senha em `DB_PASSWORD` e mantenha `DB_USERNAME=postgres.mhiagkmgzyroiglskwdo`.
+   - Em `ZYCLOS_JWT_SECRET`, cole um segredo aleatório (32+ caracteres) que assina os tokens de login. Para gerar
+     no PowerShell 7: `[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(48))`.
+     Sem ele a API não inicia. Trocar o segredo desloga todo mundo.
    - Use o **Session pooler** (porta 5432): o host direto `db.mhiagkmgzyroiglskwdo.supabase.co` só
      funciona em IPv6 no plano gratuito e costuma falhar em redes de casa e da escola. Só se a porta 5432
      estiver bloqueada, use a 6543 e acrescente `&prepareThreshold=0` ao final da URL.
@@ -96,16 +100,27 @@ Todas as entidades têm o mesmo CRUD:
 Recursos: `usuarios`, `categorias`, `anuncios`, `anuncio-imagens`, `favoritos`, `seguidores`,
 `conversas`, `mensagens`, `notificacoes`, `avaliacoes`, `propostas-troca`, `denuncias`.
 
-Login: `POST /api/v1/usuarios/login` com `{ "email": "...", "senha": "..." }` devolve o usuário (sem a senha)
-ou 401.
+Login: `POST /api/v1/usuarios/login` com `{ "email": "...", "senha": "..." }` devolve
+`{ "token": "...", "usuario": {...} }` (sem a senha) ou 401.
 
-Os relacionamentos são enviados pelo id (ex.: `"categoriaId": 3, "vendedorId": 1`).
+Autenticação (Spring Security + JWT, regras em `config/SecurityConfiguration`):
+
+- Públicas: `POST /usuarios` (cadastro), `POST /usuarios/login`, `GET /anuncios/catalogo`, `GET /anuncios/{id}`,
+  `GET /categorias` e `GET /anuncio-imagens` (com `/{id}`).
+- `GET /usuarios` e `GET /favoritos` (listas completas): só `tipoUsuario = ADMIN` (definido direto no banco).
+- O resto exige `Authorization: Bearer <token>`.
+- O usuário logado vem sempre do token: `vendedorId` do anúncio e `usuarioId` do favorito enviados no corpo
+  são ignorados. Anúncio (e suas fotos), perfil e favoritos só podem ser alterados pelo dono.
+
+Os relacionamentos são enviados pelo id (ex.: `"categoriaId": 3`).
 
 Respostas de erro:
 
 | Status | Quando |
 | --- | --- |
 | 400 | Id não numérico, campo obrigatório faltando ou id relacionado inexistente |
+| 401 | Sem token, token inválido/expirado, ou e-mail/senha errados no login |
+| 403 | O registro é de outro usuário, ou a rota é só para ADMIN |
 | 404 | Registro não encontrado |
 | 409 | Exclusão bloqueada porque outros registros dependem deste |
 

@@ -3,6 +3,7 @@ package br.com.zyclos.model.services;
 import br.com.zyclos.model.entity.Usuario;
 import br.com.zyclos.model.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -42,9 +43,9 @@ public class UsuarioService {
         if (usuarioRepository.existsByUsername(usuario.getUsername())) {
             throw new IllegalStateException("Este nome de usuário já está em uso.");
         }
-        if (usuario.getTipoUsuario() == null) {
-            usuario.setTipoUsuario("USUARIO");
-        }
+        // Quem se cadastra pelo site é sempre usuário comum e não verificado (ADMIN só direto no banco)
+        usuario.setTipoUsuario("USUARIO");
+        usuario.setVerificado(false);
         usuario.setDataCadastro(LocalDateTime.now());
         usuario.setCodStatus(true);
         usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
@@ -58,11 +59,20 @@ public class UsuarioService {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com o id " + id));
     }
 
+    // Método responsável em listar o próprio usuário (o id do token precisa ser o mesmo da URL, senão 403)
+
+    public Usuario findProprio(Long id, Long usuarioLogadoId) {
+        verificarProprio(id, usuarioLogadoId);
+        return findById(id);
+    }
+
     // Método responsável em atualizar o usuário
+    // tipoUsuario e verificado não mudam por aqui: senão qualquer um viraria ADMIN
 
     // Senha nula ou em branco mantém a atual; uma nova senha é gravada como hash
 
-    public Usuario update(Long id, Usuario usuario) {
+    public Usuario update(Long id, Usuario usuario, Long usuarioLogadoId) {
+        verificarProprio(id, usuarioLogadoId);
         Usuario usuarioExistente = findById(id);
         String email = normalizarEmail(usuario.getEmail());
         boolean emailDeOutraConta = usuarioRepository.findByEmailIgnoreCase(email)
@@ -82,14 +92,13 @@ public class UsuarioService {
         usuarioExistente.setBio(usuario.getBio());
         usuarioExistente.setCidade(usuario.getCidade());
         usuarioExistente.setEstado(usuario.getEstado());
-        usuarioExistente.setTipoUsuario(usuario.getTipoUsuario());
-        usuarioExistente.setVerificado(usuario.isVerificado());
         return usuarioRepository.save(usuarioExistente);
     }
 
     // Método responsável em excluir o usuário ( exclusão física )
 
-    public void delete(Long id) {
+    public void delete(Long id, Long usuarioLogadoId) {
+        verificarProprio(id, usuarioLogadoId);
         Usuario usuarioExistente = findById(id);
         usuarioRepository.delete(usuarioExistente);
     }
@@ -117,6 +126,14 @@ public class UsuarioService {
         }
         usuario.setSenha(passwordEncoder.encode(senha));
         return usuarioRepository.save(usuario);
+    }
+
+    // Só o próprio usuário mexe no seu perfil
+
+    private void verificarProprio(Long id, Long usuarioLogadoId) {
+        if (!id.equals(usuarioLogadoId)) {
+            throw new AccessDeniedException("Você só pode acessar o seu próprio perfil.");
+        }
     }
 
     // Hash BCrypt começa com $2a$, $2b$ ou $2y$

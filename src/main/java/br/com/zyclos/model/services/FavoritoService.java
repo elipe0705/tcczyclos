@@ -4,6 +4,7 @@ import br.com.zyclos.model.entity.Favorito;
 import br.com.zyclos.model.repository.FavoritoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,8 +25,10 @@ public class FavoritoService {
 
     // Método responsável em criar o favorito no banco de dados
     // Se o usuário já favoritou o anúncio (ex.: clique duplo), devolve o favorito que já existe
+    // O dono do favorito é sempre o usuário do token, nunca o usuarioId enviado no corpo
 
-    public Favorito save(Favorito favorito) {
+    public Favorito save(Favorito favorito, Long usuarioLogadoId) {
+        favorito.setUsuarioId(usuarioLogadoId);
         Optional<Favorito> existente = favoritoRepository.findByUsuarioIdAndAnuncioId(
                 favorito.getUsuarioId(), favorito.getAnuncioId());
         if (existente.isPresent()) {
@@ -55,19 +58,28 @@ public class FavoritoService {
                 .orElseThrow(() -> new RuntimeException("Favorito não encontrado com o id " + id));
     }
 
-    // Método responsável em atualizar o favorito
+    // Método responsável em buscar o favorito garantindo que ele é do usuário logado (senão 403)
 
-    public Favorito update(Long id, Favorito favorito) {
-        Favorito favoritoExistente = findById(id);
-        favoritoExistente.setUsuarioId(favorito.getUsuarioId());
+    public Favorito findDoDono(Long id, Long usuarioLogadoId) {
+        Favorito favorito = findById(id);
+        if (!favorito.getUsuarioId().equals(usuarioLogadoId)) {
+            throw new AccessDeniedException("Este favorito não é seu.");
+        }
+        return favorito;
+    }
+
+    // Método responsável em atualizar o favorito (o dono não muda)
+
+    public Favorito update(Long id, Favorito favorito, Long usuarioLogadoId) {
+        Favorito favoritoExistente = findDoDono(id, usuarioLogadoId);
         favoritoExistente.setAnuncioId(favorito.getAnuncioId());
         return favoritoRepository.save(favoritoExistente);
     }
 
     // Método responsável em excluir o favorito ( exclusão física )
 
-    public void delete(Long id) {
-        Favorito favoritoExistente = findById(id);
+    public void delete(Long id, Long usuarioLogadoId) {
+        Favorito favoritoExistente = findDoDono(id, usuarioLogadoId);
         favoritoRepository.delete(favoritoExistente);
     }
 }

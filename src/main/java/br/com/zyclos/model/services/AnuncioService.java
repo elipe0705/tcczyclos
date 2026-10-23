@@ -6,6 +6,7 @@ import br.com.zyclos.model.entity.Usuario;
 import br.com.zyclos.model.repository.AnuncioRepository;
 import br.com.zyclos.model.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -43,8 +44,10 @@ public class AnuncioService {
     }
 
     // Método responsável em criar o anúncio no banco de dados
+    // O vendedor é sempre o usuário do token, nunca o vendedorId enviado no corpo
 
-    public Anuncio save(Anuncio anuncio) {
+    public Anuncio save(Anuncio anuncio, Long usuarioLogadoId) {
+        anuncio.setVendedorId(usuarioLogadoId);
         if (anuncio.getTipoNegociacao() == null) {
             anuncio.setTipoNegociacao("VENDA");
         }
@@ -63,10 +66,21 @@ public class AnuncioService {
                 .orElseThrow(() -> new RuntimeException("Anúncio não encontrado com o id " + id));
     }
 
-    // Método responsável em atualizar o anúncio
+    // Método responsável em buscar o anúncio garantindo que ele é do usuário logado (senão 403)
 
-    public Anuncio update(Long id, Anuncio anuncio) {
-        Anuncio anuncioExistente = findById(id);
+    public Anuncio findDoDono(Long id, Long usuarioLogadoId) {
+        Anuncio anuncio = findById(id);
+        if (!anuncio.getVendedorId().equals(usuarioLogadoId)) {
+            throw new AccessDeniedException("Este anúncio não é seu.");
+        }
+        return anuncio;
+    }
+
+    // Método responsável em atualizar o anúncio (também usado para desativar: status INATIVO)
+    // O vendedor não muda: o vendedorId do corpo é ignorado
+
+    public Anuncio update(Long id, Anuncio anuncio, Long usuarioLogadoId) {
+        Anuncio anuncioExistente = findDoDono(id, usuarioLogadoId);
         anuncioExistente.setTitulo(anuncio.getTitulo());
         anuncioExistente.setDescricao(anuncio.getDescricao());
         anuncioExistente.setPreco(anuncio.getPreco());
@@ -79,15 +93,14 @@ public class AnuncioService {
         anuncioExistente.setTipoNegociacao(anuncio.getTipoNegociacao());
         anuncioExistente.setStatus(anuncio.getStatus());
         anuncioExistente.setCategoriaId(anuncio.getCategoriaId());
-        anuncioExistente.setVendedorId(anuncio.getVendedorId());
         anuncioExistente.setDataAtualizacao(LocalDateTime.now());
         return anuncioRepository.save(anuncioExistente);
     }
 
     // Método responsável em excluir o anúncio ( exclusão física )
 
-    public void delete(Long id) {
-        Anuncio anuncioExistente = findById(id);
+    public void delete(Long id, Long usuarioLogadoId) {
+        Anuncio anuncioExistente = findDoDono(id, usuarioLogadoId);
         anuncioRepository.delete(anuncioExistente);
     }
 }

@@ -7,7 +7,8 @@ import {
   useRef,
   useState,
 } from "react";
-import { api } from "@/lib/api";
+import { useNavigate } from "@tanstack/react-router";
+import { api, getToken, saveToken, setUnauthorizedHandler } from "@/lib/api";
 const AppContext = createContext(undefined);
 const SESSION_KEY = "zyclos.usuario";
 // Converte o usuário do back-end para o formato usado pelas telas
@@ -29,7 +30,10 @@ function readSession() {
     return null;
   }
 }
-function saveSession(user, remember) {
+// O usuário salvo serve só para exibir nome/foto nas telas. Quem decide o que cada um pode fazer é a
+// API, pelo token JWT enviado em toda requisição (src/lib/api.js)
+function saveSession(user, token, remember) {
+  saveToken(token, remember);
   try {
     localStorage.removeItem(SESSION_KEY);
     sessionStorage.removeItem(SESSION_KEY);
@@ -39,6 +43,7 @@ function saveSession(user, remember) {
   }
 }
 export function AppProvider({ children }) {
+  const navigate = useNavigate();
   // { anuncioId: favoritoId } do usuário logado
   const [favoriteIds, setFavoriteIds] = useState({});
   // ids de anúncios com favoritar/desfavoritar em andamento
@@ -49,23 +54,41 @@ export function AppProvider({ children }) {
     setToast(message);
     window.setTimeout(() => setToast(""), 2600);
   }, []);
-  // A sessão é lida só no navegador, depois da renderização no servidor
-  useEffect(() => setUser(readSession()), []);
+  // A sessão é lida só no navegador, depois da renderização no servidor. Sem token, não há sessão
+  useEffect(() => setUser(getToken() ? readSession() : null), []);
+  // Token expirado ou inválido (401): sai da conta e volta para o login
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      saveSession(null);
+      setUser(null);
+      notify("Sua sessão expirou. Entre novamente.");
+      void navigate({ to: "/login" });
+    });
+    return () => setUnauthorizedHandler(() => {});
+  }, [navigate, notify]);
   useEffect(() => {
     if (!user) {
       setFavoriteIds({});
       return;
     }
-    // Só os favoritos do usuário logado (não a tabela inteira)
+    // Só os favoritos do usuário logado: a API identifica o usuário pelo token
     api
-      .get(`/favoritos/usuario/${user.id}`)
+      .get("/favoritos/meus")
       .then((favoritos) =>
         setFavoriteIds(Object.fromEntries(favoritos.map((f) => [String(f.anuncioId), f.id]))),
       )
       .catch(() => setFavoriteIds({}));
   }, [user]);
-  const value = useMemo(
-    () => ({
+  const value = useMemo(() => {
+    // Login: a API devolve { token, usuario }
+    async function signIn(email, senha, remember = false) {
+      const { token, usuario } = await api.post("/usuarios/login", { email, senha });
+      const logged = toUser(usuario);
+      saveSession(logged, token, remember);
+      setUser(logged);
+      return logged;
+    }
+    return {
       favorites: Object.keys(favoriteIds),
       toggleFavorite: async (id) => {
         if (!user) {
@@ -82,10 +105,7 @@ export function AppProvider({ children }) {
             setFavoriteIds(({ [id]: _removed, ...rest }) => rest);
             notify("Produto removido dos favoritos.");
           } else {
-            const novo = await api.post("/favoritos", {
-              usuarioId: user.id,
-              anuncioId: Number(id),
-            });
+            const novo = await api.post("/favoritos", { anuncioId: Number(id) });
             setFavoriteIds((current) => ({ ...current, [id]: novo.id }));
             notify("Produto adicionado aos favoritos.");
           }
@@ -98,33 +118,24 @@ export function AppProvider({ children }) {
       toast,
       notify,
       user,
-      signIn: async (email, senha, remember = false) => {
-        const usuario = await api.post("/usuarios/login", { email, senha });
-        const logged = toUser(usuario);
-        saveSession(logged, remember);
-        setUser(logged);
-        return logged;
-      },
+      signIn,
+      // O cadastro não devolve token: em seguida faz o login com o mesmo e-mail e senha
       signUp: async ({ name, username, email, password, avatarUrl }) => {
-        const usuario = await api.post("/usuarios", {
+        await api.post("/usuarios", {
           nome: name,
           username,
           email,
           senha: password,
           avatarUrl: avatarUrl || null,
         });
-        const logged = toUser(usuario);
-        saveSession(logged, false);
-        setUser(logged);
-        return logged;
+        return signIn(email, password);
       },
       signOut: () => {
         saveSession(null);
         setUser(null);
       },
-    }),
-    [favoriteIds, toast, user, notify],
-  );
+    };
+  }, [favoriteIds, toast, user, notify]);
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 export function useApp() {

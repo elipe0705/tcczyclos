@@ -832,7 +832,8 @@ function validateListing(v) {
     return [3, "O preço deve ser menor que R$ 100.000.000,00."];
   return null;
 }
-function toAnuncio(v, vendedorId, status) {
+// O vendedor não vai no corpo: a API usa o usuário do token
+function toAnuncio(v, status) {
   return {
     titulo: v.title.trim(),
     descricao: v.description.trim(),
@@ -846,7 +847,6 @@ function toAnuncio(v, vendedorId, status) {
     tipoNegociacao: dealCode(v.deal),
     status,
     categoriaId: Number(v.categoryId),
-    vendedorId,
   };
 }
 export function ListingForm({ edit = false, id }) {
@@ -897,7 +897,7 @@ export function ListingForm({ edit = false, id }) {
     busy.current = true;
     setError("");
     setSaving(true);
-    const body = toAnuncio(values, user.id, existing?.status ?? "ATIVO");
+    const body = toAnuncio(values, existing?.status ?? "ATIVO");
     const anuncioId = edit ? id : createdId.current;
     try {
       const saved = anuncioId
@@ -922,10 +922,7 @@ export function ListingForm({ edit = false, id }) {
     setSaving(true);
     try {
       // Exclusão lógica: o anúncio sai do catálogo, mas favoritos e conversas continuam íntegros
-      await api.put(
-        `/anuncios/${id}`,
-        toAnuncio(fromProduct(existing), existing.sellerId, "INATIVO"),
-      );
+      await api.put(`/anuncios/${id}`, toAnuncio(fromProduct(existing), "INATIVO"));
       await refresh();
       notify("Anúncio excluído.");
       void navigate({ to: "/anuncios", search: {} });

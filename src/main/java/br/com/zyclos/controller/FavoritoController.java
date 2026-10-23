@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +21,7 @@ import java.util.Map;
  3. Body: ( o objeto que será convertido em JSON/XML para o cliente )
 
  @RequestBody : Corpo da requisição (Recebendo um objeto JSON )
+ @AuthenticationPrincipal : id do usuário logado, lido do token JWT (ver JwtAuthenticationFilter)
 */
 
 @RestController
@@ -33,21 +36,17 @@ public class FavoritoController {
         return ResponseEntity.ok(favoritoService.findAll());
     }
 
-    // Favoritos de um único usuário (o site não baixa mais a tabela inteira)
+    // Favoritos do usuário logado (o usuário vem do token, não da URL)
 
-    @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<Object> findByUsuarioId(@PathVariable String usuarioId) {
-        try {
-            return ResponseEntity.ok(favoritoService.findByUsuarioId(Long.parseLong(usuarioId)));
-        } catch (NumberFormatException e) {
-            return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + usuarioId);
-        }
+    @GetMapping("/meus")
+    public ResponseEntity<List<Favorito>> findMeus(@AuthenticationPrincipal Long usuarioLogadoId) {
+        return ResponseEntity.ok(favoritoService.findByUsuarioId(usuarioLogadoId));
     }
 
     @PostMapping
-    public ResponseEntity<Object> save(@RequestBody Favorito favorito) {
+    public ResponseEntity<Object> save(@RequestBody Favorito favorito, @AuthenticationPrincipal Long usuarioLogadoId) {
         try {
-            Favorito novo = favoritoService.save(favorito);
+            Favorito novo = favoritoService.save(favorito, usuarioLogadoId);
             return ResponseEntity.status(HttpStatus.CREATED).body(novo);
         } catch (DataIntegrityViolationException e) {
             return erro(HttpStatus.BAD_REQUEST, "Dados inválidos: confira os campos obrigatórios e os ids relacionados");
@@ -55,22 +54,27 @@ public class FavoritoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> findById(@PathVariable String id) {
+    public ResponseEntity<Object> findById(@PathVariable String id, @AuthenticationPrincipal Long usuarioLogadoId) {
         try {
-            return ResponseEntity.ok(favoritoService.findById(Long.parseLong(id)));
+            return ResponseEntity.ok(favoritoService.findDoDono(Long.parseLong(id), usuarioLogadoId));
         } catch (NumberFormatException e) {
             return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + id);
+        } catch (AccessDeniedException e) {
+            return erro(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (RuntimeException e) {
             return erro(HttpStatus.NOT_FOUND, "Favorito não encontrado com o id " + id);
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Object> update(@PathVariable String id, @RequestBody Favorito favorito) {
+    public ResponseEntity<Object> update(@PathVariable String id, @RequestBody Favorito favorito,
+                                         @AuthenticationPrincipal Long usuarioLogadoId) {
         try {
-            return ResponseEntity.ok(favoritoService.update(Long.parseLong(id), favorito));
+            return ResponseEntity.ok(favoritoService.update(Long.parseLong(id), favorito, usuarioLogadoId));
         } catch (NumberFormatException e) {
             return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + id);
+        } catch (AccessDeniedException e) {
+            return erro(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (DataIntegrityViolationException e) {
             return erro(HttpStatus.BAD_REQUEST, "Dados inválidos: confira os campos obrigatórios e os ids relacionados");
         } catch (RuntimeException e) {
@@ -79,9 +83,9 @@ public class FavoritoController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> delete(@PathVariable String id) {
+    public ResponseEntity<Object> delete(@PathVariable String id, @AuthenticationPrincipal Long usuarioLogadoId) {
         try {
-            favoritoService.delete(Long.parseLong(id));
+            favoritoService.delete(Long.parseLong(id), usuarioLogadoId);
             return ResponseEntity.ok().body(
                     Map.of(
                             "status", 200,
@@ -90,6 +94,8 @@ public class FavoritoController {
             );
         } catch (NumberFormatException e) {
             return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + id);
+        } catch (AccessDeniedException e) {
+            return erro(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (DataIntegrityViolationException e) {
             return erro(HttpStatus.CONFLICT, "Não é possível excluir: existem registros vinculados ao id " + id);
         } catch (RuntimeException e) {
