@@ -7,10 +7,10 @@ export const deals = { VENDA: "Venda", TROCA: "Troca", VENDA_TROCA: "Venda ou tr
 export const dealCode = (label) =>
   Object.keys(deals).find((code) => deals[code] === label) ?? "VENDA";
 export const conditions = ["Novo", "Excelente", "Muito bom", "Bom"];
-// Converte o anúncio do back-end para o formato de "product" usado pelos componentes
-function toProduct(anuncio, { categorias, usuarios, imagens }) {
+// Converte o anúncio do catálogo (GET /anuncios/catalogo, já com o nome do vendedor) para o
+// formato de "product" usado pelos componentes
+function toProduct(anuncio, { categorias, imagens }) {
   const categoria = categorias.find((c) => c.id === anuncio.categoriaId);
-  const vendedor = usuarios.find((u) => u.id === anuncio.vendedorId);
   const fotos = imagens
     .filter((i) => i.anuncioId === anuncio.id)
     .sort((a, b) => Number(b.principal) - Number(a.principal) || a.ordem - b.ordem);
@@ -29,10 +29,10 @@ function toProduct(anuncio, { categorias, usuarios, imagens }) {
     city: anuncio.cidade ?? "",
     state: anuncio.estado ?? "",
     location: [anuncio.cidade, anuncio.estado].filter(Boolean).join(", ") || "Brasil",
-    seller: vendedor?.nome ?? "Usuário ZYCLOS",
+    seller: anuncio.vendedorNome ?? "Usuário ZYCLOS",
     sellerId: anuncio.vendedorId,
-    sellerUsername: vendedor?.username ?? "",
-    sellerVerified: vendedor?.verificado ?? false,
+    sellerUsername: anuncio.vendedorUsername ?? "",
+    sellerVerified: anuncio.vendedorVerificado ?? false,
     deal: deals[anuncio.tipoNegociacao] ?? anuncio.tipoNegociacao,
     style: anuncio.estilo ?? "",
     status: anuncio.status,
@@ -43,18 +43,18 @@ function toProduct(anuncio, { categorias, usuarios, imagens }) {
 }
 async function fetchCatalog() {
   try {
-    const [anuncios, categorias, usuarios, imagens] = await Promise.all([
-      api.get("/anuncios"),
+    // O catálogo não baixa mais /usuarios: o back-end já manda só o nome de exibição do vendedor
+    const [anuncios, categorias, imagens] = await Promise.all([
+      api.get("/anuncios/catalogo"),
       api.get("/categorias"),
-      api.get("/usuarios"),
       api.get("/anuncio-imagens"),
     ]);
-    const lookups = { categorias, usuarios, imagens };
+    const lookups = { categorias, imagens };
     return {
       offline: false,
       categories: categorias.filter((c) => c.codStatus),
+      // O back-end já devolve só anúncios ATIVO
       products: anuncios
-        .filter((a) => a.codStatus && a.status === "ATIVO")
         .sort((a, b) => String(b.dataCadastro).localeCompare(String(a.dataCadastro)))
         .map((a) => toProduct(a, lookups)),
     };

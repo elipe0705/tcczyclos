@@ -1,5 +1,6 @@
 package br.com.zyclos.controller;
 
+import br.com.zyclos.model.dto.AnuncioCatalogoDTO;
 import br.com.zyclos.model.entity.Anuncio;
 import br.com.zyclos.model.services.AnuncioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,13 @@ public class AnuncioController {
     @GetMapping
     public ResponseEntity<List<Anuncio>> findAll() {
         return ResponseEntity.ok(anuncioService.findAll());
+    }
+
+    // Catálogo do site: anúncios ativos + nome de exibição do vendedor (sem e-mail nem senha)
+
+    @GetMapping("/catalogo")
+    public ResponseEntity<List<AnuncioCatalogoDTO>> findCatalogo() {
+        return ResponseEntity.ok(anuncioService.findCatalogo());
     }
 
     @PostMapping

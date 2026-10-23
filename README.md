@@ -23,8 +23,8 @@ O que o front-end já usa da API:
 | Tela | Endpoints |
 | --- | --- |
 | Login / Cadastro | `POST /usuarios/login`, `POST /usuarios` |
-| Início, Anúncios, Detalhe | `GET /anuncios`, `/categorias`, `/usuarios`, `/anuncio-imagens` |
-| Favoritos (coração) | `GET/POST /favoritos`, `DELETE /favoritos/{id}` |
+| Início, Anúncios, Detalhe | `GET /anuncios/catalogo`, `/categorias`, `/anuncio-imagens` |
+| Favoritos (coração) | `GET /favoritos/usuario/{id}`, `POST /favoritos`, `DELETE /favoritos/{id}` |
 | Criar / Editar / Excluir anúncio | `POST/PUT /anuncios`, `POST/PUT/DELETE /anuncio-imagens` |
 
 - A sessão fica no navegador ("Lembrar de mim" mantém o login depois de fechar a aba).

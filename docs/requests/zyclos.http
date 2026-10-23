@@ -45,6 +45,9 @@ Content-Type: application/json
 ### Listar anúncios
 GET http://localhost:8080/api/v1/anuncios
 
+### Catálogo do site (anúncios ativos + nome do vendedor, sem e-mail)
+GET http://localhost:8080/api/v1/anuncios/catalogo
+
 ### Listar anúncio por ID
 GET http://localhost:8080/api/v1/anuncios/1
 
@@ -73,6 +76,9 @@ Content-Type: application/json
   "usuarioId": 1,
   "anuncioId": 1
 }
+
+### Favoritos de um usuário
+GET http://localhost:8080/api/v1/favoritos/usuario/1
 
 ### Excluir anúncio por ID
 DELETE http://localhost:8080/api/v1/anuncios/1

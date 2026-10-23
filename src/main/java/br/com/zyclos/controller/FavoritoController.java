@@ -33,6 +33,17 @@ public class FavoritoController {
         return ResponseEntity.ok(favoritoService.findAll());
     }
 
+    // Favoritos de um único usuário (o site não baixa mais a tabela inteira)
+
+    @GetMapping("/usuario/{usuarioId}")
+    public ResponseEntity<Object> findByUsuarioId(@PathVariable String usuarioId) {
+        try {
+            return ResponseEntity.ok(favoritoService.findByUsuarioId(Long.parseLong(usuarioId)));
+        } catch (NumberFormatException e) {
+            return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + usuarioId);
+        }
+    }
+
     @PostMapping
     public ResponseEntity<Object> save(@RequestBody Favorito favorito) {
         try {

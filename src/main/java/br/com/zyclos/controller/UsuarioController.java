@@ -1,5 +1,6 @@
 package br.com.zyclos.controller;
 
+import br.com.zyclos.model.dto.UsuarioDTO;
 import br.com.zyclos.model.entity.Usuario;
 import br.com.zyclos.model.services.UsuarioService;
 import org.slf4j.Logger;
@@ -32,16 +33,18 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
+    // A resposta usa UsuarioDTO: nunca devolve a senha
+
     @GetMapping
-    public ResponseEntity<List<Usuario>> findAll() {
-        return ResponseEntity.ok(usuarioService.findAll());
+    public ResponseEntity<List<UsuarioDTO>> findAll() {
+        return ResponseEntity.ok(usuarioService.findAll().stream().map(UsuarioDTO::de).toList());
     }
 
     @PostMapping
     public ResponseEntity<Object> save(@RequestBody Usuario usuario) {
         try {
             Usuario novo = usuarioService.save(usuario);
-            return ResponseEntity.status(HttpStatus.CREATED).body(novo);
+            return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioDTO.de(novo));
         } catch (IllegalArgumentException e) {
             return erro(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (IllegalStateException e) {
@@ -56,7 +59,7 @@ public class UsuarioController {
     @PostMapping("/login")
     public ResponseEntity<Object> login(@RequestBody Map<String, String> credenciais) {
         try {
-            return ResponseEntity.ok(usuarioService.login(credenciais.get("email"), credenciais.get("senha")));
+            return ResponseEntity.ok(UsuarioDTO.de(usuarioService.login(credenciais.get("email"), credenciais.get("senha"))));
         } catch (IllegalArgumentException e) {
             return erro(HttpStatus.UNAUTHORIZED, "E-mail ou senha inválidos");
         } catch (RuntimeException e) {
@@ -69,7 +72,7 @@ public class UsuarioController {
     @GetMapping("/{id}")
     public ResponseEntity<Object> findById(@PathVariable String id) {
         try {
-            return ResponseEntity.ok(usuarioService.findById(Long.parseLong(id)));
+            return ResponseEntity.ok(UsuarioDTO.de(usuarioService.findById(Long.parseLong(id))));
         } catch (NumberFormatException e) {
             return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + id);
         } catch (RuntimeException e) {
@@ -80,7 +83,7 @@ public class UsuarioController {
     @PutMapping("/{id}")
     public ResponseEntity<Object> update(@PathVariable String id, @RequestBody Usuario usuario) {
         try {
-            return ResponseEntity.ok(usuarioService.update(Long.parseLong(id), usuario));
+            return ResponseEntity.ok(UsuarioDTO.de(usuarioService.update(Long.parseLong(id), usuario)));
         } catch (NumberFormatException e) {
             return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + id);
         } catch (IllegalArgumentException e) {

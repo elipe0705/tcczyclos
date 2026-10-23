@@ -1,12 +1,18 @@
 package br.com.zyclos.model.services;
 
+import br.com.zyclos.model.dto.AnuncioCatalogoDTO;
 import br.com.zyclos.model.entity.Anuncio;
+import br.com.zyclos.model.entity.Usuario;
 import br.com.zyclos.model.repository.AnuncioRepository;
+import br.com.zyclos.model.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class AnuncioService {
@@ -14,10 +20,26 @@ public class AnuncioService {
     @Autowired // Injeção de dependência automática
     private AnuncioRepository anuncioRepository;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
     // Método responsável em listar todos os anúncios cadastrados no banco de dados
 
     public List<Anuncio> findAll() {
         return anuncioRepository.findAll();
+    }
+
+    // Método responsável em montar o catálogo público: só anúncios ativos, com o nome de exibição do vendedor
+
+    public List<AnuncioCatalogoDTO> findCatalogo() {
+        List<Anuncio> anuncios = anuncioRepository.findByStatusAndCodStatusTrue("ATIVO");
+        // Busca os vendedores de uma vez só (em vez de uma consulta por anúncio)
+        Set<Long> vendedorIds = anuncios.stream().map(Anuncio::getVendedorId).collect(Collectors.toSet());
+        Map<Long, Usuario> vendedores = usuarioRepository.findAllById(vendedorIds).stream()
+                .collect(Collectors.toMap(Usuario::getId, usuario -> usuario));
+        return anuncios.stream()
+                .map(anuncio -> AnuncioCatalogoDTO.de(anuncio, vendedores.get(anuncio.getVendedorId())))
+                .toList();
     }
 
     // Método responsável em criar o anúncio no banco de dados

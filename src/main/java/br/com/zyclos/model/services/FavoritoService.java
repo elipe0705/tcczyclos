@@ -42,6 +42,12 @@ public class FavoritoService {
         }
     }
 
+    // Método responsável em listar só os favoritos de um usuário
+
+    public List<Favorito> findByUsuarioId(Long usuarioId) {
+        return favoritoRepository.findByUsuarioId(usuarioId);
+    }
+
     // Método responsável em listar o favorito por ID
 
     public Favorito findById(Long id) {

@@ -56,16 +56,11 @@ export function AppProvider({ children }) {
       setFavoriteIds({});
       return;
     }
+    // Só os favoritos do usuário logado (não a tabela inteira)
     api
-      .get("/favoritos")
+      .get(`/favoritos/usuario/${user.id}`)
       .then((favoritos) =>
-        setFavoriteIds(
-          Object.fromEntries(
-            favoritos
-              .filter((f) => f.usuarioId === user.id)
-              .map((f) => [String(f.anuncioId), f.id]),
-          ),
-        ),
+        setFavoriteIds(Object.fromEntries(favoritos.map((f) => [String(f.anuncioId), f.id]))),
       )
       .catch(() => setFavoriteIds({}));
   }, [user]);
