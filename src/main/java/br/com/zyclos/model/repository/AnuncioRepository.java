@@ -11,4 +11,7 @@ public interface AnuncioRepository extends JpaRepository<Anuncio, Long> {
 
     // SELECT * FROM anuncio WHERE status = ? AND cod_status = true
     List<Anuncio> findByStatusAndCodStatusTrue(String status);
+
+    // SELECT COUNT(*) FROM anuncio WHERE vendedor_id = ? AND status = ? AND cod_status = true
+    long countByVendedorIdAndStatusAndCodStatusTrue(Long vendedorId, String status);
 }

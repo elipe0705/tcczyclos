@@ -46,6 +46,17 @@ public class AvaliacaoController {
         return ResponseEntity.ok(avaliacaoService.findDoUsuario(usuarioLogadoId));
     }
 
+    // Avaliações recebidas por um usuário (perfil público): rota pública, liberada em SecurityConfiguration
+
+    @GetMapping("/usuario/{id}")
+    public ResponseEntity<Object> findRecebidas(@PathVariable String id) {
+        try {
+            return ResponseEntity.ok(avaliacaoService.findRecebidas(Long.parseLong(id)));
+        } catch (NumberFormatException e) {
+            return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + id);
+        }
+    }
+
     @PostMapping
     public ResponseEntity<Object> save(@RequestBody Avaliacao avaliacao, @AuthenticationPrincipal Long usuarioLogadoId) {
         try {

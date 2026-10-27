@@ -82,6 +82,28 @@ public class UsuarioController {
         }
     }
 
+    // Perfil público (sem e-mail, senha nem tipo): rotas públicas, liberadas em SecurityConfiguration
+
+    @GetMapping("/{id}/publico")
+    public ResponseEntity<Object> findPublico(@PathVariable String id) {
+        try {
+            return ResponseEntity.ok(usuarioService.perfilPublicoPorId(Long.parseLong(id)));
+        } catch (NumberFormatException e) {
+            return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + id);
+        } catch (RuntimeException e) {
+            return erro(HttpStatus.NOT_FOUND, "Usuário não encontrado com o id " + id);
+        }
+    }
+
+    @GetMapping("/publico/{username}")
+    public ResponseEntity<Object> findPublicoPorUsername(@PathVariable String username) {
+        try {
+            return ResponseEntity.ok(usuarioService.perfilPublicoPorUsername(username));
+        } catch (RuntimeException e) {
+            return erro(HttpStatus.NOT_FOUND, "Usuário não encontrado: " + username);
+        }
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Object> findById(@PathVariable String id, @AuthenticationPrincipal Long usuarioLogadoId) {
         try {

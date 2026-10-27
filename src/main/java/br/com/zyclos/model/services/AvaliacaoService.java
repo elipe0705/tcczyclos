@@ -1,19 +1,30 @@
 package br.com.zyclos.model.services;
 
 import br.com.zyclos.config.UsuarioLogado;
+import br.com.zyclos.model.dto.AvaliacaoPublicaDTO;
 import br.com.zyclos.model.entity.Avaliacao;
+import br.com.zyclos.model.entity.Usuario;
 import br.com.zyclos.model.repository.AvaliacaoRepository;
+import br.com.zyclos.model.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class AvaliacaoService {
 
     @Autowired // Injeção de dependência automática
     private AvaliacaoRepository avaliacaoRepository;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     // Método responsável em listar todas as avaliações cadastradas no banco de dados (só ADMIN)
 
@@ -25,6 +36,22 @@ public class AvaliacaoService {
 
     public List<Avaliacao> findDoUsuario(Long usuarioLogadoId) {
         return avaliacaoRepository.findByAutorIdOrAvaliadoId(usuarioLogadoId, usuarioLogadoId);
+    }
+
+    // Método responsável em listar as avaliações RECEBIDAS por um usuário (perfil público), da mais nova à mais antiga
+
+    public List<AvaliacaoPublicaDTO> findRecebidas(Long avaliadoId) {
+        List<Avaliacao> avaliacoes = avaliacaoRepository.findByAvaliadoId(avaliadoId).stream()
+                .filter(Avaliacao::isCodStatus)
+                .sorted(Comparator.comparing(Avaliacao::getDataCadastro).reversed())
+                .toList();
+        // Busca os autores de uma vez só (em vez de uma consulta por avaliação)
+        Set<Long> autorIds = avaliacoes.stream().map(Avaliacao::getAutorId).collect(Collectors.toSet());
+        Map<Long, Usuario> autores = usuarioRepository.findAllById(autorIds).stream()
+                .collect(Collectors.toMap(Usuario::getId, Function.identity()));
+        return avaliacoes.stream()
+                .map(avaliacao -> AvaliacaoPublicaDTO.de(avaliacao, autores.get(avaliacao.getAutorId())))
+                .toList();
     }
 
     // Método responsável em criar a avaliação no banco de dados

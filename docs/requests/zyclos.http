@@ -1,5 +1,5 @@
 # Exemplos para o REST Client (VS Code).
-# Rotas públicas: cadastro, login, catálogo, detalhe do anúncio, categorias e fotos.
+# Rotas públicas: cadastro, login, catálogo, detalhe do anúncio, categorias, fotos, perfil público e avaliações recebidas.
 # As outras precisam do cabeçalho "Authorization: Bearer <token>": rode primeiro o "Login" (e o "Login do Bruno").
 @api = http://localhost:8080/api/v1
 @token = {{login.response.body.token}}
@@ -51,6 +51,15 @@ Content-Type: application/json
   "email": "bruno@zyclos.app",
   "senha": "zyclos123"
 }
+
+### Perfil público pelo id (pública: sem e-mail, senha nem tipo; com totais e média de avaliações)
+GET {{api}}/usuarios/1/publico
+
+### Perfil público pelo @username (pública)
+GET {{api}}/usuarios/publico/anasouza
+
+### Avaliações recebidas por um usuário, da mais nova à mais antiga (pública)
+GET {{api}}/avaliacoes/usuario/1
 
 ### Listar usuários (só ADMIN: com usuário comum dá 403)
 GET {{api}}/usuarios

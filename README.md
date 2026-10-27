@@ -106,7 +106,10 @@ Login: `POST /api/v1/usuarios/login` com `{ "email": "...", "senha": "..." }` de
 Autenticação (Spring Security + JWT, regras em `config/SecurityConfiguration`):
 
 - Públicas: `POST /usuarios` (cadastro), `POST /usuarios/login`, `GET /anuncios/catalogo`, `GET /anuncios/{id}`,
-  `GET /categorias` e `GET /anuncio-imagens` (com `/{id}`).
+  `GET /categorias` e `GET /anuncio-imagens` (com `/{id}`), `GET /usuarios/{id}/publico` e
+  `GET /usuarios/publico/{username}` (perfil público: sem e-mail, senha nem tipo, com totais de anúncios ativos,
+  seguidores, seguindo e média de avaliações) e `GET /avaliacoes/usuario/{id}` (avaliações recebidas, da mais nova
+  à mais antiga).
 - Listas completas (`GET /usuarios`, `/anuncios`, `/favoritos`, `/mensagens`, `/conversas`, `/propostas-troca`,
   `/notificacoes`, `/denuncias`, `/avaliacoes`, `/seguidores`), escrita em `/categorias` e criação de notificações:
   só `tipoUsuario = ADMIN` (definido direto no banco).

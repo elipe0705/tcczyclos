@@ -21,7 +21,8 @@ import java.util.Map;
 
 /*
  Regras de acesso da API:
- - Públicas: cadastro, login, catálogo e detalhe do anúncio (com categorias e fotos, que o catálogo usa).
+ - Públicas: cadastro, login, catálogo e detalhe do anúncio (com categorias e fotos, que o catálogo usa),
+   perfil público de usuário (sem e-mail/senha/tipo) e avaliações recebidas por um usuário.
  - Listas completas (GET /usuarios, /mensagens, /conversas etc.), escrita de categorias e criação de
    notificações: só ADMIN.
  - Todo o resto: precisa de token válido (401 se faltar ou for inválido).
@@ -49,7 +50,9 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/anuncios/catalogo", "/api/v1/anuncios/{id}",
                                 "/api/v1/categorias", "/api/v1/categorias/{id}",
-                                "/api/v1/anuncio-imagens", "/api/v1/anuncio-imagens/{id}").permitAll()
+                                "/api/v1/anuncio-imagens", "/api/v1/anuncio-imagens/{id}",
+                                "/api/v1/usuarios/{id}/publico", "/api/v1/usuarios/publico/{username}",
+                                "/api/v1/avaliacoes/usuario/{id}").permitAll()
                         // Listas completas: só ADMIN (cada usuário usa GET /{recurso}/meus)
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/usuarios", "/api/v1/anuncios", "/api/v1/favoritos",

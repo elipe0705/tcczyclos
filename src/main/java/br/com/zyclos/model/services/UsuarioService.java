@@ -1,6 +1,11 @@
 package br.com.zyclos.model.services;
 
+import br.com.zyclos.model.dto.UsuarioPublicoDTO;
+import br.com.zyclos.model.entity.Avaliacao;
 import br.com.zyclos.model.entity.Usuario;
+import br.com.zyclos.model.repository.AnuncioRepository;
+import br.com.zyclos.model.repository.AvaliacaoRepository;
+import br.com.zyclos.model.repository.SeguidorRepository;
 import br.com.zyclos.model.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -33,6 +38,15 @@ public class UsuarioService {
 
     @Autowired // BCrypt, configurado em SenhaConfiguration
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private AnuncioRepository anuncioRepository;
+
+    @Autowired
+    private SeguidorRepository seguidorRepository;
+
+    @Autowired
+    private AvaliacaoRepository avaliacaoRepository;
 
     // Método responsável em listar todos os usuários cadastrados no banco de dados
 
@@ -81,6 +95,43 @@ public class UsuarioService {
         return findById(id);
     }
 
+    // Método responsável em montar o perfil público pelo id (qualquer pessoa pode ver)
+    // Usuário inexistente ou desativado (codStatus = false) gera RuntimeException (404)
+
+    public UsuarioPublicoDTO perfilPublicoPorId(Long id) {
+        Usuario usuario = findById(id);
+        return perfilPublico(usuario);
+    }
+
+    // Método responsável em montar o perfil público pelo @username
+
+    public UsuarioPublicoDTO perfilPublicoPorUsername(String username) {
+        Usuario usuario = usuarioRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + username));
+        return perfilPublico(usuario);
+    }
+
+    private UsuarioPublicoDTO perfilPublico(Usuario usuario) {
+        if (!usuario.isCodStatus()) {
+            throw new RuntimeException("Usuário não encontrado com o id " + usuario.getId());
+        }
+        Long id = usuario.getId();
+        List<Avaliacao> avaliacoes = avaliacaoRepository.findByAvaliadoId(id).stream()
+                .filter(Avaliacao::isCodStatus)
+                .toList();
+        // Sem avaliações a média fica nula (o site mostra "Sem avaliações ainda")
+        Double media = avaliacoes.isEmpty() ? null
+                : avaliacoes.stream().mapToInt(Avaliacao::getNota).average().orElse(0);
+        return UsuarioPublicoDTO.de(
+                usuario,
+                anuncioRepository.countByVendedorIdAndStatusAndCodStatusTrue(id, "ATIVO"),
+                seguidorRepository.countBySeguidoId(id),
+                seguidorRepository.countBySeguidorId(id),
+                media,
+                avaliacoes.size()
+        );
+    }
+
     // Método responsável em atualizar o usuário
     // tipoUsuario e verificado não mudam por aqui: senão qualquer um viraria ADMIN
 
@@ -95,6 +146,16 @@ public class UsuarioService {
                 .isPresent();
         if (emailDeOutraConta) {
             throw new IllegalStateException("Este e-mail já está cadastrado.");
+        }
+        validarCampo(usuario.getNome(), "O nome", 100, true);
+        validarCampo(usuario.getUsername(), "O nome de usuário", 30, true);
+        validarCampo(email, "O e-mail", 255, true);
+        validarCampo(usuario.getAvatarUrl(), "O link da foto", 500, false);
+        validarCampo(usuario.getBio(), "A bio", 500, false);
+        validarCampo(usuario.getCidade(), "A cidade", 120, false);
+        validarCampo(usuario.getEstado(), "O estado (UF)", 2, false);
+        if (usuarioRepository.existsByUsernameAndIdNot(usuario.getUsername(), id)) {
+            throw new IllegalStateException("Este nome de usuário já está em uso.");
         }
         usuarioExistente.setNome(usuario.getNome());
         usuarioExistente.setUsername(usuario.getUsername());
