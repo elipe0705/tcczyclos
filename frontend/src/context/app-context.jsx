@@ -50,12 +50,17 @@ export function AppProvider({ children }) {
   const pendingFavorites = useRef(new Set());
   const [toast, setToast] = useState("");
   const [user, setUser] = useState(null);
+  // false até ler a sessão salva no navegador (antes disso, user é null mesmo para quem está logado)
+  const [ready, setReady] = useState(false);
   const notify = useCallback((message) => {
     setToast(message);
     window.setTimeout(() => setToast(""), 2600);
   }, []);
   // A sessão é lida só no navegador, depois da renderização no servidor. Sem token, não há sessão
-  useEffect(() => setUser(getToken() ? readSession() : null), []);
+  useEffect(() => {
+    setUser(getToken() ? readSession() : null);
+    setReady(true);
+  }, []);
   // Token expirado ou inválido (401): sai da conta e volta para o login
   useEffect(() => {
     setUnauthorizedHandler(() => {
@@ -123,6 +128,7 @@ export function AppProvider({ children }) {
       toast,
       notify,
       user,
+      ready,
       signIn,
       // O cadastro não devolve token: em seguida faz o login com o mesmo e-mail e senha
       signUp: async ({ name, username, email, password, avatarUrl }) => {
@@ -156,7 +162,7 @@ export function AppProvider({ children }) {
         setUser(null);
       },
     };
-  }, [favoriteIds, toast, user, notify]);
+  }, [favoriteIds, toast, user, ready, notify]);
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 export function useApp() {

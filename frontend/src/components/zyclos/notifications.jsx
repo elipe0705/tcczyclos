@@ -11,7 +11,14 @@ import { Page } from "./page";
 const icons = { TROCA: RefreshCcw, PERFIL: UserPlus, MENSAGEM: MessageCircle };
 // Notificações reais do usuário logado (GET /notificacoes/meus)
 export function NotificationsPage() {
-  const { user } = useApp();
+  const { user, ready } = useApp();
+  // Antes de ler a sessão salva, user é null mesmo para quem está logado
+  if (!ready)
+    return (
+      <Page title="Notificações" eyebrow="Sua comunidade">
+        <Loading />
+      </Page>
+    );
   if (!user)
     return (
       <Page title="Notificações" eyebrow="Sua comunidade">

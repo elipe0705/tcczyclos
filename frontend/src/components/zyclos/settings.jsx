@@ -51,10 +51,12 @@ const profileSchema = z
     path: ["confirmacao"],
   });
 export function SettingsPage() {
-  const { user } = useApp();
+  const { user, ready } = useApp();
   return (
     <Page title="Editar perfil" eyebrow="Configurações">
-      {user ? (
+      {!ready ? (
+        <Loading />
+      ) : user ? (
         <ProfileForm user={user} />
       ) : (
         <Empty icon={<User />} title="Entre para editar seu perfil" link="/login" action="Entrar" />

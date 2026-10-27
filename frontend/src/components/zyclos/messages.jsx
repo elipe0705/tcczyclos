@@ -13,7 +13,14 @@ import { Page } from "./page";
 // Mensagens: conversas e mensagens reais do usuário logado (GET /conversas/meus e /mensagens/meus),
 // atualizadas a cada 10 segundos
 export function MessagesPage({ initialConversation }) {
-  const { user } = useApp();
+  const { user, ready } = useApp();
+  // Antes de ler a sessão salva, user é null mesmo para quem está logado
+  if (!ready)
+    return (
+      <Page title="Mensagens" eyebrow="Conversas">
+        <Loading />
+      </Page>
+    );
   if (!user)
     return (
       <Page title="Mensagens" eyebrow="Conversas">

@@ -23,14 +23,16 @@ import { CatalogError, Empty, ListingImage, Loading, QueryError } from "./common
 import { Page } from "./page";
 // Trocas: propostas reais do usuário logado (GET /propostas-troca/meus)
 export function TradesPage() {
-  const { user } = useApp();
+  const { user, ready } = useApp();
   return (
     <Page
       title="Troca de peças"
       eyebrow="Renove seu estilo"
       description="Renove seu estilo sem deixar suas peças paradas."
     >
-      {user ? (
+      {!ready ? (
+        <Loading />
+      ) : user ? (
         <Trades user={user} />
       ) : (
         <Empty

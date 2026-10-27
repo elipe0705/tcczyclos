@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Reports } from "@/components/zyclos/admin";
 export const Route = createFileRoute("/admin/relatorios")({
   head: () => ({
-    meta: meta("Relatórios", "Relatórios demonstrativos do ZYCLOS."),
+    meta: meta("Relatórios", "Relatórios da atividade da comunidade ZYCLOS."),
   }),
   component: Reports,
 });

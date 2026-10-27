@@ -24,7 +24,6 @@ import { Route as TrocasRouteImport } from "./routes/trocas";
 import { Route as AdminIndexRouteImport } from "./routes/admin.index";
 import { Route as AdminAnunciosRouteImport } from "./routes/admin.anuncios";
 import { Route as AdminCategoriasRouteImport } from "./routes/admin.categorias";
-import { Route as AdminConfiguracoesRouteImport } from "./routes/admin.configuracoes";
 import { Route as AdminDenunciasRouteImport } from "./routes/admin.denuncias";
 import { Route as AdminRelatoriosRouteImport } from "./routes/admin.relatorios";
 import { Route as AdminUsuariosRouteImport } from "./routes/admin.usuarios";
@@ -109,11 +108,6 @@ const AdminCategoriasRoute = AdminCategoriasRouteImport.update({
   path: "/categorias",
   getParentRoute: () => AdminRoute,
 });
-const AdminConfiguracoesRoute = AdminConfiguracoesRouteImport.update({
-  id: "/configuracoes",
-  path: "/configuracoes",
-  getParentRoute: () => AdminRoute,
-});
 const AdminDenunciasRoute = AdminDenunciasRouteImport.update({
   id: "/denuncias",
   path: "/denuncias",
@@ -158,7 +152,6 @@ const PerfilUsernameRoute = PerfilUsernameRouteImport.update({
 const AdminRouteChildren = {
   AdminAnunciosRoute: AdminAnunciosRoute,
   AdminCategoriasRoute: AdminCategoriasRoute,
-  AdminConfiguracoesRoute: AdminConfiguracoesRoute,
   AdminDenunciasRoute: AdminDenunciasRoute,
   AdminRelatoriosRoute: AdminRelatoriosRoute,
   AdminUsuariosRoute: AdminUsuariosRoute,

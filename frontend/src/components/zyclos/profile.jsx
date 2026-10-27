@@ -28,8 +28,14 @@ import { Page } from "./page";
 import { ProductCard } from "./product-card";
 // /perfil: o próprio perfil do usuário logado
 export function OwnProfilePage() {
-  const { user } = useApp();
+  const { user, ready } = useApp();
   const query = usePublicProfile(user?.id);
+  if (!ready)
+    return (
+      <Page title="Meu perfil">
+        <Loading />
+      </Page>
+    );
   if (!user)
     return (
       <Page title="Meu perfil">

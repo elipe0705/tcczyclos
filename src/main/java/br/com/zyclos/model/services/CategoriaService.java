@@ -24,6 +24,7 @@ public class CategoriaService {
     public Categoria save(Categoria categoria) {
         // O id é gerado pelo banco: um id no corpo faria o save() sobrescrever o registro de outra pessoa
         categoria.setId(null);
+        validar(categoria);
         categoria.setCodStatus(true);
         return categoriaRepository.save(categoria);
     }
@@ -36,12 +37,15 @@ public class CategoriaService {
     }
 
     // Método responsável em atualizar a categoria
+    // codStatus também muda por aqui: é como o painel administrativo ativa/desativa a categoria
 
     public Categoria update(Long id, Categoria categoria) {
         Categoria categoriaExistente = findById(id);
         categoriaExistente.setNome(categoria.getNome());
         categoriaExistente.setSlug(categoria.getSlug());
+        validar(categoria);
         categoriaExistente.setDescricao(categoria.getDescricao());
+        categoriaExistente.setCodStatus(categoria.isCodStatus());
         return categoriaRepository.save(categoriaExistente);
     }
 
@@ -50,5 +54,25 @@ public class CategoriaService {
     public void delete(Long id) {
         Categoria categoriaExistente = findById(id);
         categoriaRepository.delete(categoriaExistente);
+    }
+
+    // Nome e slug obrigatórios, com o tamanho máximo das colunas (nome e slug únicos: conferido pelo banco, 409)
+
+    private void validar(Categoria categoria) {
+        validarCampo(categoria.getNome(), "O nome", 60, true);
+        validarCampo(categoria.getSlug(), "O slug", 60, true);
+        validarCampo(categoria.getDescricao(), "A descrição", 255, false);
+    }
+
+    private void validarCampo(String valor, String campo, int tamanhoMaximo, boolean obrigatorio) {
+        if (valor == null || valor.isBlank()) {
+            if (obrigatorio) {
+                throw new IllegalArgumentException(campo + " é obrigatório.");
+            }
+            return;
+        }
+        if (valor.length() > tamanhoMaximo) {
+            throw new IllegalArgumentException(campo + " deve ter no máximo " + tamanhoMaximo + " caracteres.");
+        }
     }
 }

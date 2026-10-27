@@ -40,8 +40,10 @@ public class CategoriaController {
         try {
             Categoria novo = categoriaService.save(categoria);
             return ResponseEntity.status(HttpStatus.CREATED).body(novo);
+        } catch (IllegalArgumentException e) {
+            return erro(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (DataIntegrityViolationException e) {
-            return erro(HttpStatus.BAD_REQUEST, "Dados inválidos: confira os campos obrigatórios e os ids relacionados");
+            return erro(HttpStatus.CONFLICT, "Já existe uma categoria com este nome ou slug.");
         }
     }
 
@@ -62,8 +64,10 @@ public class CategoriaController {
             return ResponseEntity.ok(categoriaService.update(Long.parseLong(id), categoria));
         } catch (NumberFormatException e) {
             return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + id);
+        } catch (IllegalArgumentException e) {
+            return erro(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (DataIntegrityViolationException e) {
-            return erro(HttpStatus.BAD_REQUEST, "Dados inválidos: confira os campos obrigatórios e os ids relacionados");
+            return erro(HttpStatus.CONFLICT, "Já existe uma categoria com este nome ou slug.");
         } catch (RuntimeException e) {
             return erro(HttpStatus.NOT_FOUND, "Categoria não encontrada com o id " + id);
         }
@@ -82,7 +86,7 @@ public class CategoriaController {
         } catch (NumberFormatException e) {
             return erro(HttpStatus.BAD_REQUEST, "O id informado não é válido: " + id);
         } catch (DataIntegrityViolationException e) {
-            return erro(HttpStatus.CONFLICT, "Não é possível excluir: existem registros vinculados ao id " + id);
+            return erro(HttpStatus.CONFLICT, "Não é possível excluir: há anúncios nesta categoria. Desative-a em vez de excluir.");
         } catch (RuntimeException e) {
             return erro(HttpStatus.NOT_FOUND, "Categoria não encontrada com o id " + id);
         }
