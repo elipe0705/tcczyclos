@@ -50,7 +50,7 @@ export function formatChatTime(value) {
   return format(date, "dd/MM");
 }
 
-// 4,8
+// Média de avaliações com 1 casa decimal (ex.: 3,5)
 export function formatRating(value) {
   return value == null
     ? ""

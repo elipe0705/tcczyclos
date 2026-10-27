@@ -43,7 +43,7 @@ function toProduct(anuncio, { categorias, imagens }) {
   };
 }
 // Back-end desligado (status 0) ou com erro: a consulta falha e as telas mostram o erro com
-// "Tentar novamente". Nunca há dados de demonstração no lugar dos reais
+// "Tentar novamente". Nunca há dados inventados no lugar dos reais
 async function fetchCatalog() {
   // O catálogo não baixa /usuarios: o back-end já manda só o nome de exibição do vendedor
   const [anuncios, categorias, imagens] = await Promise.all([
