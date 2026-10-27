@@ -1,7 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import fallbackImage from "@/assets/product-collection.jpg";
-import * as mock from "./mock";
 // Tipo de negociação: valor gravado no banco <-> texto exibido nas telas
 export const deals = { VENDA: "Venda", TROCA: "Troca", VENDA_TROCA: "Venda ou troca" };
 export const dealCode = (label) =>
@@ -18,8 +16,9 @@ function toProduct(anuncio, { categorias, imagens }) {
     id: String(anuncio.id),
     name: anuncio.titulo,
     price: anuncio.preco,
-    image: fotos[0]?.url ?? fallbackImage,
-    images: fotos.length ? fotos.map((f) => f.url) : [fallbackImage],
+    // Sem foto: as telas mostram um quadro neutro "Sem foto" (ListingImage)
+    image: fotos[0]?.url ?? null,
+    images: fotos.map((f) => f.url),
     imageIds: fotos.map((f) => f.id),
     category: categoria?.nome ?? "Sem categoria",
     categoryId: anuncio.categoriaId,
@@ -28,8 +27,10 @@ function toProduct(anuncio, { categorias, imagens }) {
     condition: anuncio.condicao,
     city: anuncio.cidade ?? "",
     state: anuncio.estado ?? "",
-    location: [anuncio.cidade, anuncio.estado].filter(Boolean).join(", ") || "Brasil",
-    seller: anuncio.vendedorNome ?? "Usuário ZYCLOS",
+    // Vazio quando o anúncio não tem cidade/UF: as telas escondem a linha de localização
+    location: [anuncio.cidade, anuncio.estado].filter(Boolean).join(", "),
+    // null quando o vendedor não existe mais: as telas mostram só "Vendedor", sem link
+    seller: anuncio.vendedorNome ?? null,
     sellerId: anuncio.vendedorId,
     sellerUsername: anuncio.vendedorUsername ?? "",
     sellerVerified: anuncio.vendedorVerificado ?? false,
@@ -41,43 +42,37 @@ function toProduct(anuncio, { categorias, imagens }) {
     createdAt: anuncio.dataCadastro,
   };
 }
+// Back-end desligado (status 0) ou com erro: a consulta falha e as telas mostram o erro com
+// "Tentar novamente". Nunca há dados de demonstração no lugar dos reais
 async function fetchCatalog() {
-  try {
-    // O catálogo não baixa mais /usuarios: o back-end já manda só o nome de exibição do vendedor
-    const [anuncios, categorias, imagens] = await Promise.all([
-      api.get("/anuncios/catalogo"),
-      api.get("/categorias"),
-      api.get("/anuncio-imagens"),
-    ]);
-    const lookups = { categorias, imagens };
-    return {
-      offline: false,
-      categories: categorias.filter((c) => c.codStatus),
-      // O back-end já devolve só anúncios ATIVO
-      products: anuncios
-        .sort((a, b) => String(b.dataCadastro).localeCompare(String(a.dataCadastro)))
-        .map((a) => toProduct(a, lookups)),
-    };
-  } catch (error) {
-    if (error.status !== 0) throw error;
-    // Back-end desligado: mostra os dados de demonstração para a apresentação não travar
-    return {
-      offline: true,
-      categories: mock.categories.map((nome, index) => ({ id: index + 1, nome })),
-      products: mock.products.map((p) => ({ ...p, images: [p.image] })),
-    };
-  }
+  // O catálogo não baixa /usuarios: o back-end já manda só o nome de exibição do vendedor
+  const [anuncios, categorias, imagens] = await Promise.all([
+    api.get("/anuncios/catalogo"),
+    api.get("/categorias"),
+    api.get("/anuncio-imagens"),
+  ]);
+  const lookups = { categorias, imagens };
+  return {
+    categories: categorias.filter((c) => c.codStatus),
+    // O back-end já devolve só anúncios ATIVO
+    products: anuncios
+      .sort((a, b) => String(b.dataCadastro).localeCompare(String(a.dataCadastro)))
+      .map((a) => toProduct(a, lookups)),
+  };
 }
 export function useCatalog() {
   const query = useQuery({ queryKey: ["catalog"], queryFn: fetchCatalog, staleTime: 30_000 });
   return {
     products: query.data?.products ?? [],
     categories: query.data?.categories ?? [],
-    offline: query.data?.offline ?? false,
     isLoading: query.isPending,
     error: query.error,
+    refetch: query.refetch,
   };
 }
+// Anúncios que aceitam troca
+export const acceptsTrade = (product) =>
+  product.deal === deals.TROCA || product.deal === deals.VENDA_TROCA;
 export function useRefreshCatalog() {
   const queryClient = useQueryClient();
   return () => queryClient.invalidateQueries({ queryKey: ["catalog"] });

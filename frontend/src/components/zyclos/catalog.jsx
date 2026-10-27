@@ -3,6 +3,7 @@ import { Filter, Search, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { deals, useCatalog } from "@/data/catalog";
+import { CatalogError } from "./common";
 import { ProductCard } from "./product-card";
 import { Page } from "./page";
 export function CatalogPage({ initialQuery = "", initialCategory = "Todos" }) {
@@ -14,7 +15,7 @@ export function CatalogPage({ initialQuery = "", initialCategory = "Todos" }) {
   const [brand, setBrand] = useState("Todas as marcas");
   const [size, setSize] = useState("Todos");
   const [condition, setCondition] = useState("Todas");
-  const { products, categories, isLoading, offline } = useCatalog();
+  const { products, categories, isLoading, error, refetch } = useCatalog();
   const filtered = useMemo(
     () =>
       products
@@ -27,6 +28,7 @@ export function CatalogPage({ initialQuery = "", initialCategory = "Todos" }) {
             (condition === "Todas" || product.condition === condition) &&
             product.name.toLowerCase().includes(query.toLowerCase()),
         )
+        // "Mais recentes" mantém a ordem do catálogo (já vem do mais novo ao mais antigo)
         .sort((a, b) =>
           sort === "menor"
             ? (a.price ?? 0) - (b.price ?? 0)
@@ -151,7 +153,6 @@ export function CatalogPage({ initialQuery = "", initialCategory = "Todos" }) {
           <option value="recentes">Mais recentes</option>
           <option value="menor">Menor preço</option>
           <option value="maior">Maior preço</option>
-          <option value="relevantes">Mais relevantes</option>
         </select>
       </div>
       <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
@@ -166,17 +167,20 @@ export function CatalogPage({ initialQuery = "", initialCategory = "Todos" }) {
             <p className="text-sm text-muted-foreground">
               {isLoading ? (
                 "Carregando anúncios..."
+              ) : error ? (
+                "Anúncios indisponíveis"
               ) : (
                 <>
                   <strong className="text-foreground">{filtered.length}</strong> anúncios
                   encontrados
-                  {offline && " · servidor offline, exibindo dados de demonstração"}
                 </>
               )}
             </p>
             <SlidersHorizontal className="size-4 text-muted-foreground" />
           </div>
-          {filtered.length ? (
+          {error ? (
+            <CatalogError error={error} onRetry={refetch} className="min-h-80" />
+          ) : isLoading ? null : filtered.length ? (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {filtered.map((product) => (
                 <ProductCard key={product.id} product={product} />
@@ -186,7 +190,11 @@ export function CatalogPage({ initialQuery = "", initialCategory = "Todos" }) {
             <div className="grid min-h-80 place-items-center rounded-lg border border-dashed text-center">
               <div>
                 <Search className="mx-auto mb-3 size-8 text-muted-foreground" />
-                <h2 className="font-bold">Nenhum anúncio encontrado.</h2>
+                <h2 className="font-bold">
+                  {products.length
+                    ? "Nenhum anúncio encontrado."
+                    : "Nenhum anúncio publicado ainda."}
+                </h2>
                 <Button
                   className="mt-4"
                   onClick={() => {

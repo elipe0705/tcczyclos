@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ProductDetail } from "@/components/zyclos/product-detail";
 import { Button } from "@/components/ui/button";
 import { useCatalog } from "@/data/catalog";
+import { CatalogError } from "@/components/zyclos/common";
 export const Route = createFileRoute("/anuncios/$id")({
   head: () => ({
     meta: [
@@ -17,9 +18,15 @@ export const Route = createFileRoute("/anuncios/$id")({
 });
 function Detail() {
   const { id } = Route.useParams();
-  const { products, isLoading } = useCatalog();
+  const { products, isLoading, error, refetch } = useCatalog();
   const product = products.find((p) => p.id === id);
   if (product) return <ProductDetail key={product.id} product={product} />;
+  if (error)
+    return (
+      <div className="mx-auto max-w-7xl px-6 py-16">
+        <CatalogError error={error} onRetry={refetch} />
+      </div>
+    );
   return (
     <div className="mx-auto grid min-h-[50vh] max-w-7xl place-items-center px-6 text-center">
       {isLoading ? (

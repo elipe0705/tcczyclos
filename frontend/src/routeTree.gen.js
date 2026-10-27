@@ -29,6 +29,7 @@ import { Route as AdminDenunciasRouteImport } from "./routes/admin.denuncias";
 import { Route as AdminRelatoriosRouteImport } from "./routes/admin.relatorios";
 import { Route as AdminUsuariosRouteImport } from "./routes/admin.usuarios";
 import { Route as AnunciosIndexRouteImport } from "./routes/anuncios.index";
+import { Route as PerfilIndexRouteImport } from "./routes/perfil.index";
 import { Route as AnunciosIdRouteImport } from "./routes/anuncios.$id";
 import { Route as EditarAnuncioIdRouteImport } from "./routes/editar-anuncio.$id";
 import { Route as PerfilUsernameRouteImport } from "./routes/perfil.$username";
@@ -133,6 +134,11 @@ const AnunciosIndexRoute = AnunciosIndexRouteImport.update({
   path: "/",
   getParentRoute: () => AnunciosRoute,
 });
+const PerfilIndexRoute = PerfilIndexRouteImport.update({
+  id: "/",
+  path: "/",
+  getParentRoute: () => PerfilRoute,
+});
 const AnunciosIdRoute = AnunciosIdRouteImport.update({
   id: "/$id",
   path: "/$id",
@@ -170,6 +176,7 @@ const AnunciosRouteWithChildren = AnunciosRoute._addFileChildren(AnunciosRouteCh
 
 const PerfilRouteChildren = {
   PerfilUsernameRoute: PerfilUsernameRoute,
+  PerfilIndexRoute: PerfilIndexRoute,
 };
 
 const PerfilRouteWithChildren = PerfilRoute._addFileChildren(PerfilRouteChildren);

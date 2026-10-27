@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ProfilePage } from "@/components/zyclos/user-pages";
+import { UserProfilePage } from "@/components/zyclos/profile";
 export const Route = createFileRoute("/perfil/$username")({
   head: () => ({
     meta: [
@@ -11,5 +11,10 @@ export const Route = createFileRoute("/perfil/$username")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: ProfilePage,
+  component: Profile,
 });
+function Profile() {
+  const { username } = Route.useParams();
+  // key: trocar de perfil recomeça a tela (abas, estados)
+  return <UserProfilePage key={username} username={username} />;
+}

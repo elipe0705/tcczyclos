@@ -1,16 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ProfilePage } from "@/components/zyclos/user-pages";
-export const Route = createFileRoute("/perfil")({
-  head: () => ({ meta: meta("Meu perfil", "Veja seu perfil e anúncios no ZYCLOS.") }),
-  component: ProfilePage,
-});
-function meta(t, d) {
-  return [
-    { title: `${t} — ZYCLOS` },
-    { name: "description", content: d },
-    { property: "og:title", content: `${t} — ZYCLOS` },
-    { property: "og:description", content: d },
-    { property: "og:type", content: "website" },
-    { name: "twitter:card", content: "summary_large_image" },
-  ];
-}
+import { Outlet, createFileRoute } from "@tanstack/react-router";
+// Layout de /perfil: o próprio perfil fica em perfil.index.jsx e o de outras pessoas em perfil.$username.jsx
+export const Route = createFileRoute("/perfil")({ component: () => <Outlet /> });

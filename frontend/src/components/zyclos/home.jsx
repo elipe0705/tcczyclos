@@ -2,7 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, BadgeDollarSign, Leaf, RefreshCcw, ShoppingBag, Shirt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import hero from "@/assets/hero-urban-young.jpg";
-import { useCatalog } from "@/data/catalog";
+import { acceptsTrade, useCatalog } from "@/data/catalog";
+import { CatalogError } from "./common";
 import { ProductCard } from "./product-card";
 const pillars = [
   [ShoppingBag, "Compre", "Encontre peças que combinam com você."],
@@ -11,7 +12,13 @@ const pillars = [
   [Leaf, "Sustentabilidade", "Prolongue a vida útil das roupas."],
 ];
 export function HomePage() {
-  const { products, categories, isLoading } = useCatalog();
+  const { products, categories, isLoading, error, refetch } = useCatalog();
+  // Números reais do catálogo já carregado ("—" enquanto carrega)
+  const stats = [
+    [products.length, "Anúncios ativos"],
+    [products.filter(acceptsTrade).length, "Peças disponíveis para troca"],
+    [categories.length, "Categorias"],
+  ];
   return (
     <>
       <section className="relative min-h-[560px] overflow-hidden bg-background text-foreground lg:min-h-[620px]">
@@ -75,19 +82,31 @@ export function HomePage() {
             Ver todas <ArrowRight className="size-4" />
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
-          {categories.map(({ id, nome: category }) => (
-            <Link
-              key={id}
-              to="/anuncios"
-              search={{ categoria: category }}
-              className="group grid aspect-square place-items-center rounded-lg border bg-card p-3 text-center transition hover:border-primary hover:bg-muted"
-            >
-              <Shirt className="mb-2 size-7 text-secondary transition group-hover:scale-110" />
-              <span className="text-sm font-bold">{category}</span>
-            </Link>
-          ))}
-        </div>
+        {error ? (
+          <CatalogError error={error} onRetry={refetch} />
+        ) : isLoading ? (
+          <p className="rounded-lg border border-dashed p-10 text-center text-muted-foreground">
+            Carregando categorias...
+          </p>
+        ) : !categories.length ? (
+          <p className="rounded-lg border border-dashed p-10 text-center text-muted-foreground">
+            Nenhuma categoria cadastrada ainda.
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+            {categories.map(({ id, nome: category }) => (
+              <Link
+                key={id}
+                to="/anuncios"
+                search={{ categoria: category }}
+                className="group grid aspect-square place-items-center rounded-lg border bg-card p-3 text-center transition hover:border-primary hover:bg-muted"
+              >
+                <Shirt className="mb-2 size-7 text-secondary transition group-hover:scale-110" />
+                <span className="text-sm font-bold">{category}</span>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
       <section className="bg-muted/60">
         <div className="mx-auto max-w-7xl px-6 py-16">
@@ -100,7 +119,9 @@ export function HomePage() {
               <Link to="/anuncios">Ver todos</Link>
             </Button>
           </div>
-          {products.length ? (
+          {error ? (
+            <CatalogError error={error} onRetry={refetch} />
+          ) : products.length ? (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {products.slice(0, 4).map((product) => (
                 <ProductCard key={product.id} product={product} />
@@ -120,23 +141,17 @@ export function HomePage() {
             <h2 className="mt-5 font-display text-3xl font-extrabold">
               Dar uma nova vida para uma peça também é cuidar do planeta.
             </h2>
-            <p className="mt-4 text-highlight-foreground/80">
-              Indicadores demonstrativos desta versão do ZYCLOS.
-            </p>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              ["12", "Peças reaproveitadas"],
-              ["7", "Trocas realizadas"],
-              ["9", "Anúncios publicados"],
-              ["~", "Recursos poupados"],
-            ].map(([n, label]) => (
-              <div key={label} className="border-l border-highlight-foreground/30 p-4">
-                <p className="font-display text-3xl font-black">{n}</p>
-                <p className="text-sm">{label}</p>
-              </div>
-            ))}
-          </div>
+          {!error && (
+            <div className="grid grid-cols-2 gap-3">
+              {stats.map(([n, label]) => (
+                <div key={label} className="border-l border-highlight-foreground/30 p-4">
+                  <p className="font-display text-3xl font-black">{isLoading ? "—" : n}</p>
+                  <p className="text-sm">{label}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </>

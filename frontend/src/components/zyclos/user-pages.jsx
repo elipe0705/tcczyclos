@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   Bell,
   Camera,
-  CheckCircle2,
   Eye,
   EyeOff,
   Heart,
@@ -19,7 +18,6 @@ import {
   Send,
   Settings,
   Shield,
-  Sparkles,
   Trash2,
   Upload,
   User,
@@ -29,7 +27,8 @@ import { z } from "zod";
 import { Brand } from "./brand";
 import { Page } from "./page";
 import { ProductCard } from "./product-card";
-import { conversations, notifications, products, reviews } from "@/data/mock";
+import { conversations, notifications, products } from "@/data/mock";
+import { CatalogError, Empty, Loading } from "./common";
 import {
   conditions,
   deals,
@@ -142,9 +141,6 @@ export function AuthPage({ signup = false }) {
       setError(err.message);
       setLoading(false);
     }
-  }
-  function googleDemo() {
-    notify("Entrar com Google ainda não está disponível. Use e-mail e senha.");
   }
   return (
     <div className="grid min-h-screen bg-background lg:grid-cols-[0.9fr_1.1fr]">
@@ -260,19 +256,10 @@ export function AuthPage({ signup = false }) {
                 icon={<Lock />}
               />
             )}
-            {signup ? (
-              <label className="flex items-start gap-2 text-xs text-muted-foreground">
-                <input required name="terms" type="checkbox" className="mt-0.5 accent-primary" />{" "}
-                Aceito os termos de uso e a política de privacidade.
+            {!signup && (
+              <label className="flex items-center gap-2 text-xs">
+                <input name="remember" type="checkbox" className="accent-primary" /> Lembrar de mim
               </label>
-            ) : (
-              <div className="flex items-center justify-between gap-3 text-xs">
-                <label className="flex items-center gap-2">
-                  <input name="remember" type="checkbox" className="accent-primary" /> Lembrar de
-                  mim
-                </label>
-                <ForgotPassword />
-              </div>
             )}
             {error && (
               <Alert variant="destructive">
@@ -292,15 +279,6 @@ export function AuthPage({ signup = false }) {
               )}
             </Button>
           </form>
-          <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            ou
-            <span className="h-px flex-1 bg-border" />
-          </div>
-          <Button type="button" variant="outline" className="w-full" onClick={googleDemo}>
-            <Sparkles /> Continuar com Google{" "}
-            <span className="text-xs text-muted-foreground">(demonstração)</span>
-          </Button>
           <p className="mt-6 text-center text-sm text-muted-foreground">
             {signup ? "Já tem uma conta?" : "Ainda não tem conta?"}{" "}
             <Link className="font-bold text-secondary" to={signup ? "/login" : "/cadastro"}>
@@ -343,173 +321,21 @@ function Field({
     </label>
   );
 }
-function ForgotPassword() {
-  const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState("");
-  function recover() {
-    const result = z.string().trim().email("Digite um e-mail válido.").safeParse(email);
-    if (!result.success) {
-      setError(result.error.issues[0]?.message ?? "E-mail inválido.");
-      return;
-    }
-    setError("");
-    setSent(true);
-  }
-  return (
-    <Dialog
-      onOpenChange={(open) => {
-        if (!open) {
-          setSent(false);
-          setError("");
-        }
-      }}
-    >
-      <DialogTrigger asChild>
-        <Button type="button" variant="link" className="h-auto p-0 text-xs text-secondary">
-          Esqueci minha senha
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Recuperar senha</DialogTitle>
-          <DialogDescription>
-            Informe seu e-mail para simular o envio das instruções de recuperação.
-          </DialogDescription>
-        </DialogHeader>
-        {sent ? (
-          <div role="status" className="rounded-md border bg-accent p-5 text-center">
-            <CheckCircle2 className="mx-auto mb-3 size-8 text-secondary" />
-            <strong className="block">Instruções simuladas enviadas</strong>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Nenhum e-mail real foi enviado nesta versão.
-            </p>
-          </div>
-        ) : (
-          <div className="grid gap-4">
-            <label className="text-sm font-semibold">
-              E-mail da conta
-              <div className="relative mt-2">
-                <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  aria-label="E-mail para recuperação"
-                  type="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-11 pl-9"
-                />
-              </div>
-            </label>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="button" onClick={recover}>
-              Enviar instruções
-            </Button>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-}
-export function ProfilePage() {
-  const [following, setFollowing] = useState(false);
-  return (
-    <Page
-      title="Lívia Rocha"
-      eyebrow="@liviar · desde março de 2024"
-      actions={
-        <div className="flex gap-2">
-          <Button
-            variant={following ? "outline" : "default"}
-            onClick={() => setFollowing(!following)}
-          >
-            <UserPlus />
-            {following ? "Seguindo" : "Seguir"}
-          </Button>
-          <Button variant="outline" asChild>
-            <Link to="/mensagens">
-              <MessageCircle />
-              Chat
-            </Link>
-          </Button>
-        </div>
-      }
-    >
-      <div className="mb-8 grid gap-6 md:grid-cols-[160px_1fr]">
-        <div className="grid size-36 place-items-center rounded-full bg-secondary font-display text-5xl font-black text-secondary-foreground">
-          LR
-        </div>
-        <div>
-          <p className="max-w-xl text-muted-foreground">
-            Apaixonada por garimpos, peças atemporais e novas formas de consumir moda. Todas as
-            peças são cuidadas com carinho.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-7 text-sm">
-            {[
-              ["4,8", "Avaliação"],
-              ["18", "Anúncios"],
-              ["328", "Seguidores"],
-              ["146", "Seguindo"],
-            ].map(([n, l]) => (
-              <div key={l}>
-                <strong className="block font-display text-xl">{n}</strong>
-                <span className="text-muted-foreground">{l}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-      <Tabs defaultValue="ads">
-        <TabsList>
-          <TabsTrigger value="ads">Anúncios</TabsTrigger>
-          <TabsTrigger value="reviews">Avaliações</TabsTrigger>
-          <TabsTrigger value="about">Sobre</TabsTrigger>
-        </TabsList>
-        <TabsContent value="ads" className="mt-7">
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {products.slice(0, 4).map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
-        </TabsContent>
-        <TabsContent value="reviews" className="mt-7">
-          <div className="grid gap-4">
-            {reviews.map((r) => (
-              <article key={r.name} className="rounded-lg border bg-card p-5">
-                <div className="flex justify-between">
-                  <strong>{r.name}</strong>
-                  <span className="text-xs text-muted-foreground">{r.date}</span>
-                </div>
-                <p className="my-2 text-highlight">{"★".repeat(r.rating)}</p>
-                <p className="text-sm text-muted-foreground">{r.text}</p>
-              </article>
-            ))}
-          </div>
-        </TabsContent>
-        <TabsContent value="about" className="mt-7">
-          <div className="max-w-2xl rounded-lg bg-muted p-6">
-            <h2 className="font-display text-xl font-bold">Sobre Lívia</h2>
-            <p className="mt-3 text-muted-foreground">
-              São Paulo, SP · Responde normalmente em até uma hora. Prefere entregas em locais
-              públicos ou envio combinado.
-            </p>
-          </div>
-        </TabsContent>
-      </Tabs>
-    </Page>
-  );
-}
 export function FavoritesPage() {
   const { favorites, user } = useApp();
-  const { products } = useCatalog();
+  const { products, isLoading, error, refetch } = useCatalog();
   const items = products.filter((p) => favorites.includes(p.id));
   return (
     <Page
       title="Seus favoritos"
       eyebrow="Peças que chamaram sua atenção"
-      description={`${items.length} item(ns) salvo(s).`}
+      description={user && !isLoading && !error ? `${items.length} item(ns) salvo(s).` : undefined}
     >
-      {items.length ? (
+      {user && error ? (
+        <CatalogError error={error} onRetry={refetch} />
+      ) : user && isLoading ? (
+        <Loading text="Carregando favoritos..." />
+      ) : items.length ? (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {items.map((p) => (
             <ProductCard key={p.id} product={p} />
@@ -670,22 +496,6 @@ export function MessagesPage() {
         </section>
       </div>
     </Page>
-  );
-}
-function Empty({ icon, title, text, link, action }) {
-  return (
-    <div className="grid min-h-80 place-items-center rounded-lg border border-dashed text-center">
-      <div>
-        <span className="mx-auto mb-4 grid size-12 place-items-center rounded-full bg-muted [&>svg]:size-6">
-          {icon}
-        </span>
-        <h2 className="font-display text-xl font-bold">{title}</h2>
-        <p className="mt-2 text-sm text-muted-foreground">{text}</p>
-        <Button className="mt-5" asChild>
-          <Link to={link}>{action}</Link>
-        </Button>
-      </div>
-    </div>
   );
 }
 export function TradesPage() {
@@ -864,7 +674,7 @@ export function ListingForm({ edit = false, id }) {
   const { notify, user } = useApp();
   const navigate = useNavigate();
   const refresh = useRefreshCatalog();
-  const { products, categories, isLoading, offline } = useCatalog();
+  const { products, categories, isLoading, error: catalogError } = useCatalog();
   const existing = edit ? products.find((p) => p.id === id) : undefined;
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(null);
@@ -885,10 +695,10 @@ export function ListingForm({ edit = false, id }) {
         "/login",
         "Entrar",
       ]
-    : offline
+    : catalogError
       ? [
           "Servidor indisponível",
-          "Ligue o back-end do ZYCLOS para publicar anúncios.",
+          "Não foi possível carregar as categorias e os anúncios. Verifique se o servidor está no ar.",
           "/anuncios",
           "Ver anúncios",
         ]

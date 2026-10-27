@@ -10,6 +10,7 @@ import {
   Plus,
   Search,
   Settings,
+  Shield,
   User,
   X,
 } from "lucide-react";
@@ -136,6 +137,14 @@ export function SiteShell({ children }) {
                       Configurações
                     </Link>
                   </DropdownMenuItem>
+                  {user.type === "ADMIN" && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin">
+                        <Shield />
+                        Painel administrativo
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onSelect={handleSignOut} className="text-destructive">
                     <LogOut />
@@ -270,7 +279,7 @@ export function SiteShell({ children }) {
             <p className="font-bold">ZYCLOS</p>
             <div className="mt-3 grid gap-2 text-sm text-primary-foreground/70">
               <Link to="/configuracoes">Configurações</Link>
-              <Link to="/admin">Área administrativa</Link>
+              {user?.type === "ADMIN" && <Link to="/admin">Área administrativa</Link>}
             </div>
           </div>
         </div>

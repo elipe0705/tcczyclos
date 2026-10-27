@@ -3,19 +3,21 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/context/app-context";
 import { formatPrice } from "@/data/catalog";
+import { ListingImage } from "./common";
 export function ProductCard({ product }) {
   const { favorites, toggleFavorite } = useApp();
   const liked = favorites.includes(product.id);
   return (
     <article className="group min-w-0 overflow-hidden rounded-lg border bg-card transition duration-300 hover:-translate-y-1 hover:shadow-xl">
       <div className="relative aspect-square overflow-hidden bg-muted">
-        <img
+        <ListingImage
           src={product.image}
           alt={product.name}
           width={1024}
           height={1024}
           loading="lazy"
-          className="size-full object-cover transition duration-500 group-hover:scale-[1.03]"
+          iconClassName="size-10"
+          className="size-full transition duration-500 group-hover:scale-[1.03]"
         />
         <Button
           variant="secondary"
@@ -41,10 +43,14 @@ export function ProductCard({ product }) {
           {formatPrice(product.price)}
         </p>
         <div className="flex items-center justify-between gap-2 border-t pt-3 text-xs text-muted-foreground">
-          <span className="flex min-w-0 items-center gap-1 truncate">
-            <MapPin className="size-3.5 shrink-0" />
-            {product.location}
-          </span>
+          {product.location ? (
+            <span className="flex min-w-0 items-center gap-1 truncate">
+              <MapPin className="size-3.5 shrink-0" />
+              {product.location}
+            </span>
+          ) : (
+            <span />
+          )}
           <Link
             to="/anuncios/$id"
             params={{ id: product.id }}
