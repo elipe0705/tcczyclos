@@ -76,7 +76,7 @@ Authorization: Bearer {{token}}
   "preco": 89.90,
   "marca": "Levi's",
   "tamanho": "M",
-  "condicao": "SEMINOVO",
+  "condicao": "Excelente",
   "tipoNegociacao": "VENDA",
   "categoriaId": 3
 }
@@ -102,7 +102,7 @@ Authorization: Bearer {{token}}
   "preco": 69.90,
   "marca": "Levi's",
   "tamanho": "M",
-  "condicao": "SEMINOVO",
+  "condicao": "Excelente",
   "tipoNegociacao": "VENDA",
   "status": "ATIVO",
   "categoriaId": 3

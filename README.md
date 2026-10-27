@@ -24,16 +24,33 @@ O que o front-end já usa da API:
 | --- | --- |
 | Login / Cadastro | `POST /usuarios/login`, `POST /usuarios` |
 | Início, Anúncios, Detalhe | `GET /anuncios/catalogo`, `/categorias`, `/anuncio-imagens` |
+| Detalhe: vendedor, interesse, troca, denúncia | `GET /usuarios/{id}/publico`, `GET/POST /conversas`, `POST /propostas-troca`, `POST /denuncias` |
 | Favoritos (coração) | `GET /favoritos/meus`, `POST /favoritos`, `DELETE /favoritos/{id}` |
 | Criar / Editar / Excluir anúncio | `POST/PUT /anuncios`, `POST/PUT/DELETE /anuncio-imagens` |
+| Perfil (próprio e de outros) | `GET /usuarios/{id}/publico`, `GET /usuarios/publico/{username}`, `GET /avaliacoes/usuario/{id}`, `GET /seguidores/meus`, `POST /seguidores`, `DELETE /seguidores/{id}` |
+| Mensagens | `GET /conversas/meus`, `GET /mensagens/meus`, `POST /mensagens`, `PUT /mensagens/{id}` (marcar como lida) |
+| Trocas | `GET /propostas-troca/meus`, `PUT /propostas-troca/{id}` (aceitar/recusar), `DELETE /propostas-troca/{id}` (cancelar) |
+| Notificações (e contador no sino) | `GET /notificacoes/meus`, `PUT /notificacoes/{id}` (marcar como lida) |
+| Editar perfil | `GET /usuarios/{id}`, `PUT /usuarios/{id}` |
+| Painel administrativo | `GET /usuarios`, `/anuncios`, `/categorias`, `/denuncias`, `/propostas-troca`; `POST/PUT/DELETE /categorias`; `PUT /denuncias/{id}` |
 
 - O login devolve um token JWT, guardado no navegador ("Lembrar de mim" mantém depois de fechar a aba) e
   enviado em toda requisição (`Authorization: Bearer <token>`). Token expirado (24 h) leva de volta ao login.
 - Excluir um anúncio pelo site muda o `status` para `INATIVO` (não apaga a linha, para não quebrar favoritos
   e conversas). O catálogo mostra só anúncios `ATIVO`.
 - A foto do anúncio é um link (URL) de imagem, gravado em `anuncio_imagem`.
-- Se a API estiver desligada, o site mostra os dados de demonstração de `frontend/src/data/mock.js`.
-- Mensagens, trocas, notificações, perfil e área administrativa ainda usam dados de demonstração.
+- O site não tem dados de demonstração: tudo vem do banco. Se a API estiver desligada, as telas mostram
+  "Não foi possível carregar..." com o botão "Tentar novamente".
+- A própria API cria notificações quando alguém recebe uma proposta de troca, tem a proposta aceita ou
+  recusada, ganha um seguidor ou recebe uma mensagem (um aviso por conversa até ser lido).
+- Anúncio sem foto aparece com o quadro "Sem foto".
+
+## Conta de administrador
+
+O painel administrativo (`/admin`) só abre para contas com `tipo_usuario = 'ADMIN'`, que não podem ser
+criadas pelo site. Para promover uma conta já cadastrada: no Supabase, abra **Table Editor → usuario**, ache
+a linha pelo e-mail e troque `tipo_usuario` para `ADMIN` (ou, no SQL Editor:
+`update usuario set tipo_usuario = 'ADMIN' where email = 'seu@email';`). Depois saia e entre de novo no site.
 
 ## Estrutura (MVC)
 
@@ -56,8 +73,9 @@ O banco fica no Supabase (PostgreSQL), projeto `zyclos`, região São Paulo.
 1. Copie `.env.example` para `.env` (na raiz do repositório) e preencha:
    - No painel do Supabase, abra o projeto `zyclos` → **Project Settings → Database → Reset database
      password**, gere uma senha e guarde num gerenciador de senhas.
-   - Clique em **Connect** (topo do painel) → **Session pooler** e copie só o **host**
-     (algo como `aws-X-sa-east-1.pooler.supabase.com`). Cole em `DB_URL` no lugar de `HOST_DO_SESSION_POOLER`.
+   - Clique em **Connect** (topo do painel) → **Session pooler** e confira o **host**
+     (algo como `aws-X-sa-east-1.pooler.supabase.com`). Se for diferente do que já está em `DB_URL`, troque
+     só essa parte (entre `jdbc:postgresql://` e `:5432`).
    - Coloque a senha em `DB_PASSWORD` e mantenha `DB_USERNAME=postgres.mhiagkmgzyroiglskwdo`.
    - Em `ZYCLOS_JWT_SECRET`, cole um segredo aleatório (32+ caracteres) que assina os tokens de login. Para gerar
      no PowerShell 7: `[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(48))`.
@@ -131,6 +149,6 @@ Respostas de erro:
 | 403 | O registro é de outro usuário, ou a rota é só para ADMIN |
 | 429 | Login bloqueado por 15 minutos depois de 5 senhas erradas seguidas |
 | 404 | Registro não encontrado |
-| 409 | Exclusão bloqueada porque outros registros dependem deste |
+| 409 | Exclusão bloqueada porque outros registros dependem deste, ou e-mail, nome de usuário ou categoria já usados |
 
 Exemplos prontos para o REST Client (VS Code) ou para copiar no Insomnia: `docs/requests/zyclos.http`.
