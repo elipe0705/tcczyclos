@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { SettingsPage } from "@/components/zyclos/user-pages";
+import { SettingsPage } from "@/components/zyclos/settings";
 export const Route = createFileRoute("/configuracoes")({
-  head: () => ({ meta: meta("Configurações", "Gerencie suas preferências no ZYCLOS.") }),
+  head: () => ({ meta: meta("Editar perfil", "Atualize seus dados e sua senha no ZYCLOS.") }),
   component: SettingsPage,
 });
 function meta(t, d) {

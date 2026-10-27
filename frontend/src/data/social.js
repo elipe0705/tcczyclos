@@ -2,6 +2,7 @@ import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/rea
 import { useNavigate } from "@tanstack/react-router";
 import { api } from "@/lib/api";
 import { useApp } from "@/context/app-context";
+import { useCatalog } from "./catalog";
 // Perfis públicos, avaliações, seguidores e abertura de conversas (React Query sobre a API)
 
 // Perfil público (GET /usuarios/{id}/publico): nome, @username, foto, totais e média de avaliações
@@ -117,4 +118,64 @@ export function useStartConversation() {
       mutation.mutate({ otherId, anuncioId });
     },
   };
+}
+
+// Status das propostas de troca (proposta_troca.status), num lugar só
+export const TRADE_STATUS = { PENDENTE: "PENDENTE", ACEITA: "ACEITA", RECUSADA: "RECUSADA" };
+export const tradeStatusLabel = {
+  [TRADE_STATUS.PENDENTE]: "Pendente",
+  [TRADE_STATUS.ACEITA]: "Aceita",
+  [TRADE_STATUS.RECUSADA]: "Recusada",
+};
+
+// Notificações do usuário logado, da mais nova à mais antiga (também usadas no sino do cabeçalho)
+export function useNotifications() {
+  const { user } = useApp();
+  return useQuery({
+    queryKey: ["notificacoes", user?.id],
+    queryFn: async () =>
+      (await api.get("/notificacoes/meus")).sort((a, b) =>
+        String(b.dataCadastro).localeCompare(String(a.dataCadastro)),
+      ),
+    enabled: Boolean(user),
+    refetchInterval: 30_000,
+  });
+}
+
+// Título e foto de anúncios pelo id: usa o catálogo (anúncios ativos) e, para os que não estão nele
+// (ex.: anúncio já inativo de uma troca antiga), busca GET /anuncios/{id} e as fotos
+export function useListingLookup(ids) {
+  const { products, isLoading } = useCatalog();
+  const wanted = [...new Set(ids.filter((id) => id != null).map(String))];
+  const missing = isLoading ? [] : wanted.filter((id) => !products.some((p) => p.id === id));
+  const extra = useQueries({
+    queries: missing.map((id) => ({
+      queryKey: ["anuncio", id],
+      queryFn: () => api.get(`/anuncios/${id}`),
+      staleTime: 60_000,
+    })),
+  });
+  const images = useQuery({
+    queryKey: ["anuncio-imagens"],
+    queryFn: () => api.get("/anuncio-imagens"),
+    enabled: missing.length > 0,
+    staleTime: 60_000,
+  });
+  const lookup = {};
+  for (const product of products) lookup[product.id] = product;
+  missing.forEach((id, index) => {
+    const anuncio = extra[index]?.data;
+    if (!anuncio) return;
+    const foto = (images.data ?? [])
+      .filter((i) => String(i.anuncioId) === id)
+      .sort((a, b) => Number(b.principal) - Number(a.principal) || a.ordem - b.ordem)[0];
+    lookup[id] = {
+      id,
+      name: anuncio.titulo,
+      image: foto?.url ?? null,
+      status: anuncio.status,
+      sellerId: anuncio.vendedorId,
+    };
+  });
+  return lookup;
 }

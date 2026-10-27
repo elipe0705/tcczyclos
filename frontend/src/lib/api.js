@@ -15,6 +15,14 @@ export function getToken() {
     return null;
   }
 }
+// true se o token foi salvo com "Lembrar de mim" (localStorage)
+export function isTokenRemembered() {
+  try {
+    return localStorage.getItem(TOKEN_KEY) != null;
+  } catch {
+    return false;
+  }
+}
 export function saveToken(token, remember = false) {
   try {
     localStorage.removeItem(TOKEN_KEY);

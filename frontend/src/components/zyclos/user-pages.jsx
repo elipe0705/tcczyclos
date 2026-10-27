@@ -2,22 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
-  Bell,
   Camera,
   Eye,
   EyeOff,
   Heart,
   ImagePlus,
-  Leaf,
   LoaderCircle,
   Lock,
   Mail,
-  MessageCircle,
-  Plus,
   Recycle,
-  Send,
-  Settings,
-  Shield,
   Trash2,
   Upload,
   User,
@@ -27,7 +20,6 @@ import { z } from "zod";
 import { Brand } from "./brand";
 import { Page } from "./page";
 import { ProductCard } from "./product-card";
-import { conversations, notifications, products } from "@/data/mock";
 import { CatalogError, Empty, Loading } from "./common";
 import {
   conditions,
@@ -41,15 +33,6 @@ import { api, getToken } from "@/lib/api";
 import { useApp } from "@/context/app-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 const loginSchema = z.object({
   email: z.string().trim().email("Digite um e-mail válido.").max(255),
@@ -351,251 +334,6 @@ export function FavoritesPage() {
         />
       )}
     </Page>
-  );
-}
-export function NotificationsPage() {
-  const [read, setRead] = useState([]);
-  return (
-    <Page
-      title="Notificações"
-      eyebrow="Sua comunidade"
-      actions={
-        <Button variant="outline" onClick={() => setRead(notifications.map((n) => n.id))}>
-          Marcar todas como lidas
-        </Button>
-      }
-    >
-      <div className="mx-auto max-w-3xl divide-y rounded-lg border bg-card">
-        {notifications.map((n) => (
-          <button
-            key={n.id}
-            onClick={() => setRead([...read, n.id])}
-            className={`flex w-full items-start gap-4 p-5 text-left hover:bg-muted ${read.includes(n.id) ? "opacity-60" : ""}`}
-          >
-            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-primary">
-              <Bell className="size-5" />
-            </span>
-            <span className="flex-1">
-              <strong className="block text-sm">{n.text}</strong>
-              <span className="mt-1 block text-xs text-muted-foreground">{n.time}</span>
-            </span>
-            {!read.includes(n.id) && <span className="mt-2 size-2 rounded-full bg-highlight" />}
-          </button>
-        ))}
-      </div>
-    </Page>
-  );
-}
-export function MessagesPage() {
-  const [active, setActive] = useState(1);
-  const [mobileChat, setMobileChat] = useState(false);
-  const [search, setSearch] = useState("");
-  const [text, setText] = useState("");
-  const [sent, setSent] = useState({});
-  const visible = conversations.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
-  return (
-    <Page title="Mensagens" eyebrow="Conversas">
-      <div className="grid min-h-[600px] overflow-hidden rounded-lg border bg-card md:grid-cols-[320px_minmax(0,1fr)]">
-        <aside
-          className={`${mobileChat ? "hidden" : "block"} border-b md:block md:border-b-0 md:border-r`}
-        >
-          <div className="p-4">
-            <Input
-              aria-label="Buscar conversa"
-              placeholder="Buscar conversa"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          {visible.map((c) => (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setActive(c.id);
-                setMobileChat(true);
-              }}
-              key={c.id}
-              className={`flex h-auto w-full justify-start gap-3 rounded-none border-t p-4 text-left ${active === c.id ? "bg-accent" : "hover:bg-muted"}`}
-            >
-              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary font-bold">
-                {c.name[0]}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="flex justify-between gap-2">
-                  <strong className="truncate text-sm">{c.name}</strong>
-                  <small className="shrink-0">{c.time}</small>
-                </span>
-                <span className="block truncate text-xs text-muted-foreground">{c.message}</span>
-              </span>
-              {c.unread > 0 && (
-                <span className="grid size-5 shrink-0 place-items-center rounded-full bg-primary text-[10px] text-primary-foreground">
-                  {c.unread}
-                </span>
-              )}
-            </Button>
-          ))}
-          {visible.length === 0 && (
-            <p className="p-4 text-sm text-muted-foreground">Nenhuma conversa encontrada.</p>
-          )}
-        </aside>
-        <section
-          className={`${mobileChat ? "flex" : "hidden"} min-w-0 min-h-[480px] flex-col md:flex`}
-        >
-          <header className="flex items-center gap-2 border-b p-4 font-bold">
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Voltar às conversas"
-              className="md:hidden"
-              onClick={() => setMobileChat(false)}
-            >
-              <ArrowLeft />
-            </Button>
-            {conversations.find((c) => c.id === active)?.name}
-          </header>
-          <div className="min-w-0 flex-1 space-y-3 bg-muted/50 p-5">
-            <div className="w-fit max-w-[85%] break-words rounded-lg rounded-tl-none bg-card p-3 text-sm shadow-sm">
-              Olá! A peça continua disponível?
-            </div>
-            <div className="ml-auto w-fit max-w-[85%] break-words rounded-lg rounded-tr-none bg-primary p-3 text-sm text-primary-foreground">
-              Sim! Está em ótimo estado.
-            </div>
-            {(sent[active] ?? []).map((msg, i) => (
-              <div
-                key={i}
-                className="ml-auto w-fit max-w-[85%] break-words rounded-lg rounded-tr-none bg-primary p-3 text-sm text-primary-foreground"
-              >
-                {msg}
-              </div>
-            ))}
-          </div>
-          <form
-            className="flex min-w-0 gap-2 border-t p-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (text.trim()) {
-                setSent((current) => ({
-                  ...current,
-                  [active]: [...(current[active] ?? []), text.trim()],
-                }));
-                setText("");
-              }
-            }}
-          >
-            <Input
-              aria-label="Mensagem"
-              className="min-w-0"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Escreva uma mensagem..."
-            />
-            <Button type="submit" size="icon" className="shrink-0" aria-label="Enviar">
-              <Send />
-            </Button>
-          </form>
-        </section>
-      </div>
-    </Page>
-  );
-}
-export function TradesPage() {
-  const { notify } = useApp();
-  return (
-    <Page
-      title="Troca de peças"
-      eyebrow="Renove seu estilo"
-      description="Renove seu estilo sem deixar suas peças paradas."
-    >
-      <Tabs defaultValue="mine">
-        <TabsList className="h-auto flex-wrap">
-          <TabsTrigger value="mine">Minhas ofertas</TabsTrigger>
-          <TabsTrigger value="received">Propostas recebidas</TabsTrigger>
-          <TabsTrigger value="history">Histórico</TabsTrigger>
-        </TabsList>
-        <TabsContent value="mine" className="mt-8">
-          <h2 className="mb-5 font-display text-xl font-bold">
-            Minhas peças disponíveis para troca
-          </h2>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {products.slice(0, 3).map((p) => (
-              <div key={p.id} className="rounded-lg border bg-card p-4">
-                <div className="flex gap-4">
-                  <img src={p.image} alt={p.name} className="size-24 rounded-md object-cover" />
-                  <div>
-                    <strong>{p.name}</strong>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Tam. {p.size} · {p.condition}
-                    </p>
-                    <TradeDialog
-                      product={p}
-                      onSend={() => notify("Proposta enviada com sucesso.")}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </TabsContent>
-        <TabsContent value="received" className="mt-8">
-          <TradeRow title="Caio quer trocar o Tênis retrô" status="Aguardando resposta" />
-          <TradeRow title="Marina ofereceu uma bolsa de couro" status="Nova proposta" />
-        </TabsContent>
-        <TabsContent value="history" className="mt-8">
-          <TradeRow title="Troca com Beatriz concluída" status="Concluída" />
-        </TabsContent>
-      </Tabs>
-    </Page>
-  );
-}
-function TradeDialog({ product, onSend }) {
-  const offeredImage = products[1]?.image ?? product.image;
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button size="sm" className="mt-3">
-          Trocar
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Monte sua proposta</DialogTitle>
-          <DialogDescription>Escolha uma peça para oferecer por {product.name}.</DialogDescription>
-        </DialogHeader>
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-          <div className="rounded-lg border p-3 text-center">
-            <img
-              src={offeredImage}
-              alt="Sua peça"
-              className="aspect-square rounded-md object-cover"
-            />
-            <strong className="mt-2 block text-sm">Você oferece</strong>
-          </div>
-          <Plus className="text-highlight" />
-          <div className="rounded-lg border p-3 text-center">
-            <img
-              src={product.image}
-              alt={product.name}
-              className="aspect-square rounded-md object-cover"
-            />
-            <strong className="mt-2 block text-sm">Você recebe</strong>
-          </div>
-        </div>
-        <Button onClick={onSend}>Enviar proposta</Button>
-      </DialogContent>
-    </Dialog>
-  );
-}
-function TradeRow({ title, status }) {
-  return (
-    <div className="mb-3 flex items-center justify-between rounded-lg border bg-card p-5">
-      <div>
-        <strong>{title}</strong>
-        <p className="text-sm text-muted-foreground">Atualizado recentemente</p>
-      </div>
-      <span className="rounded-full bg-accent px-3 py-1 text-xs font-bold text-accent-foreground">
-        {status}
-      </span>
-    </div>
   );
 }
 const emptyListing = {
@@ -979,55 +717,4 @@ export function ListingForm({ edit = false, id }) {
 }
 function ShirtFallback() {
   return <Upload className="size-8 text-muted-foreground" />;
-}
-export function SettingsPage() {
-  const { notify } = useApp();
-  const sections = [
-    [User, "Perfil"],
-    [Bell, "Notificações"],
-    [MessageCircle, "Mensagens"],
-    [Shield, "Segurança"],
-    [Leaf, "Aparência"],
-  ];
-  return (
-    <Page title="Configurações" eyebrow="Sua experiência">
-      <div className="grid gap-6 md:grid-cols-[220px_1fr]">
-        <nav className="space-y-1">
-          {sections.map(([Icon, label], i) => (
-            <Button
-              key={label}
-              variant={i === 0 ? "default" : "ghost"}
-              className="w-full justify-start"
-            >
-              <Icon />
-              {label}
-            </Button>
-          ))}
-        </nav>
-        <div className="rounded-lg border bg-card p-6">
-          <h2 className="font-display text-xl font-bold">Preferências da conta</h2>
-          <div className="mt-6 divide-y">
-            {[
-              ["Receber notificações", "Novidades sobre suas trocas e anúncios"],
-              ["Receber mensagens", "Avisos de novas conversas"],
-              ["Mostrar perfil", "Seu perfil fica visível na comunidade"],
-              ["Comunicação", "Receba novidades do ZYCLOS"],
-            ].map(([title, text], i) => (
-              <label key={title} className="flex items-center justify-between gap-4 py-5">
-                <span>
-                  <strong className="block text-sm">{title}</strong>
-                  <span className="text-xs text-muted-foreground">{text}</span>
-                </span>
-                <input type="checkbox" defaultChecked={i < 3} className="size-5 accent-primary" />
-              </label>
-            ))}
-          </div>
-          <Button className="mt-6" onClick={() => notify("Preferências salvas.")}>
-            <Settings />
-            Salvar preferências
-          </Button>
-        </div>
-      </div>
-    </Page>
-  );
 }

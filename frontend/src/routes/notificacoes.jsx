@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { NotificationsPage } from "@/components/zyclos/user-pages";
+import { NotificationsPage } from "@/components/zyclos/notifications";
 export const Route = createFileRoute("/notificacoes")({
   head: () => ({ meta: meta("Notificações", "Acompanhe novidades da sua comunidade ZYCLOS.") }),
   component: NotificationsPage,

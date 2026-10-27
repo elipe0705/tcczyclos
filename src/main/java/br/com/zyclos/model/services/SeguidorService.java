@@ -2,7 +2,9 @@ package br.com.zyclos.model.services;
 
 import br.com.zyclos.config.UsuarioLogado;
 import br.com.zyclos.model.entity.Seguidor;
+import br.com.zyclos.model.entity.Usuario;
 import br.com.zyclos.model.repository.SeguidorRepository;
+import br.com.zyclos.model.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,12 @@ public class SeguidorService {
 
     @Autowired // Injeção de dependência automática
     private SeguidorRepository seguidorRepository;
+
+    @Autowired
+    private NotificacaoService notificacaoService;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     // Método responsável em listar todos os seguidores cadastrados no banco de dados (só ADMIN)
 
@@ -37,7 +45,12 @@ public class SeguidorService {
         seguidor.setSeguidorId(usuarioLogadoId);
         seguidor.setDataCadastro(LocalDateTime.now());
         seguidor.setCodStatus(true);
-        return seguidorRepository.save(seguidor);
+        Seguidor salvo = seguidorRepository.save(seguidor);
+        // Avisa quem ganhou o seguidor, com link para o perfil de quem seguiu
+        usuarioRepository.findById(usuarioLogadoId).ifPresent((Usuario quemSegue) ->
+                notificacaoService.notificar(salvo.getSeguidoId(), quemSegue.getNome() + " começou a seguir você",
+                        "PERFIL", "/perfil/" + quemSegue.getUsername()));
+        return salvo;
     }
 
     // Método responsável em listar o seguidor por ID

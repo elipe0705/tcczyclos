@@ -41,6 +41,30 @@ public class NotificacaoService {
         return notificacaoRepository.save(notificacao);
     }
 
+    // Método responsável em criar a notificação gerada pelo próprio sistema (proposta de troca, novo seguidor,
+    // nova mensagem). Chamado pelos outros services, nunca direto pela API
+
+    public Notificacao notificar(Long usuarioId, String texto, String tipo, String destino) {
+        Notificacao notificacao = new Notificacao();
+        notificacao.setUsuarioId(usuarioId);
+        // texto é varchar(300) no banco
+        notificacao.setTexto(texto.length() > 300 ? texto.substring(0, 300) : texto);
+        notificacao.setTipo(tipo);
+        notificacao.setDestino(destino);
+        notificacao.setLida(false);
+        notificacao.setDataCadastro(LocalDateTime.now());
+        notificacao.setCodStatus(true);
+        return notificacaoRepository.save(notificacao);
+    }
+
+    // Igual ao notificar, mas não cria outra se o usuário ainda tem uma NÃO lida com o mesmo destino
+
+    public void notificarSemRepetir(Long usuarioId, String texto, String tipo, String destino) {
+        if (!notificacaoRepository.existsByUsuarioIdAndDestinoAndLidaFalse(usuarioId, destino)) {
+            notificar(usuarioId, texto, tipo, destino);
+        }
+    }
+
     // Método responsável em listar a notificação por ID
 
     public Notificacao findById(Long id) {

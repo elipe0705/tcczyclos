@@ -3,7 +3,9 @@ package br.com.zyclos.model.services;
 import br.com.zyclos.config.UsuarioLogado;
 import br.com.zyclos.model.entity.Anuncio;
 import br.com.zyclos.model.entity.PropostaTroca;
+import br.com.zyclos.model.entity.Usuario;
 import br.com.zyclos.model.repository.PropostaTrocaRepository;
+import br.com.zyclos.model.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,12 @@ public class PropostaTrocaService {
 
     @Autowired
     private AnuncioService anuncioService;
+
+    @Autowired
+    private NotificacaoService notificacaoService;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     // Método responsável em listar todas as propostas de troca cadastradas no banco de dados (só ADMIN)
 
@@ -56,7 +64,12 @@ public class PropostaTrocaService {
         propostaTroca.setDataAtualizacao(null);
         propostaTroca.setDataCadastro(LocalDateTime.now());
         propostaTroca.setCodStatus(true);
-        return propostaTrocaRepository.save(propostaTroca);
+        PropostaTroca salva = propostaTrocaRepository.save(propostaTroca);
+        // Avisa quem recebeu a proposta
+        String nome = usuarioRepository.findById(usuarioLogadoId).map(Usuario::getNome).orElse("Alguém");
+        notificacaoService.notificar(salva.getDestinatarioId(), nome + " enviou uma proposta de troca",
+                "TROCA", "/trocas");
+        return salva;
     }
 
     // Método responsável em listar a proposta de troca por ID
@@ -89,6 +102,12 @@ public class PropostaTrocaService {
             UsuarioLogado.verificarAcesso(usuarioLogadoId.equals(propostaTrocaExistente.getDestinatarioId()),
                     "Só quem recebeu a proposta pode mudar o status.");
             propostaTrocaExistente.setStatus(propostaTroca.getStatus());
+            // Avisa quem fez a proposta que ela foi aceita ou recusada
+            if (propostaTroca.getStatus().equals("ACEITA") || propostaTroca.getStatus().equals("RECUSADA")) {
+                String resultado = propostaTroca.getStatus().equals("ACEITA") ? "aceita" : "recusada";
+                notificacaoService.notificar(propostaTrocaExistente.getProponenteId(),
+                        "Sua proposta de troca foi " + resultado, "TROCA", "/trocas");
+            }
         }
         propostaTrocaExistente.setDataAtualizacao(LocalDateTime.now());
         return propostaTrocaRepository.save(propostaTrocaExistente);

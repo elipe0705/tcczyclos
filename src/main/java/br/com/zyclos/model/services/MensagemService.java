@@ -3,7 +3,9 @@ package br.com.zyclos.model.services;
 import br.com.zyclos.config.UsuarioLogado;
 import br.com.zyclos.model.entity.Conversa;
 import br.com.zyclos.model.entity.Mensagem;
+import br.com.zyclos.model.entity.Usuario;
 import br.com.zyclos.model.repository.MensagemRepository;
+import br.com.zyclos.model.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,12 @@ public class MensagemService {
 
     @Autowired
     private ConversaService conversaService;
+
+    @Autowired
+    private NotificacaoService notificacaoService;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     // Método responsável em listar todas as mensagens cadastradas no banco de dados (só ADMIN)
 
@@ -52,7 +60,14 @@ public class MensagemService {
         mensagem.setLida(false);
         mensagem.setDataEnvio(LocalDateTime.now());
         mensagem.setCodStatus(true);
-        return mensagemRepository.save(mensagem);
+        Mensagem salva = mensagemRepository.save(mensagem);
+        // Avisa o outro participante, sem repetir enquanto ele não ler o aviso anterior desta conversa
+        Long destinatarioId = usuarioLogadoId.equals(conversa.getParticipanteAId())
+                ? conversa.getParticipanteBId() : conversa.getParticipanteAId();
+        String nome = usuarioRepository.findById(usuarioLogadoId).map(Usuario::getNome).orElse("Alguém");
+        notificacaoService.notificarSemRepetir(destinatarioId, "Nova mensagem de " + nome, "MENSAGEM",
+                "/mensagens?conversa=" + conversa.getId());
+        return salva;
     }
 
     // Método responsável em listar a mensagem por ID

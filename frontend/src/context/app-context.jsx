@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { api, getToken, saveToken, setUnauthorizedHandler } from "@/lib/api";
+import { api, getToken, isTokenRemembered, saveToken, setUnauthorizedHandler } from "@/lib/api";
 const AppContext = createContext(undefined);
 const SESSION_KEY = "zyclos.usuario";
 // Converte o usuário do back-end para o formato usado pelas telas
@@ -143,6 +143,13 @@ export function AppProvider({ children }) {
           error.accountCreated = true;
           throw error;
         }
+      },
+      // Depois de editar o perfil: regrava o usuário salvo no mesmo lugar do token
+      // (localStorage com "Lembrar de mim", senão sessionStorage), mantendo o token atual
+      updateUser: (usuario) => {
+        const updated = toUser(usuario);
+        saveSession(updated, getToken(), isTokenRemembered());
+        setUser(updated);
       },
       signOut: () => {
         saveSession(null);

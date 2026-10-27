@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { TradesPage } from "@/components/zyclos/user-pages";
+import { TradesPage } from "@/components/zyclos/trades";
 export const Route = createFileRoute("/trocas")({
   head: () => ({ meta: meta("Troca de peças", "Renove seu estilo trocando peças no ZYCLOS.") }),
   component: TradesPage,
