@@ -1,0 +1,3 @@
+# Quebras de linha sempre LF (padrão do repositório, do Prettier e do Lovable), mesmo no Windows
+# com core.autocrlf=true. Imagens e outros binários são detectados e ficam como estão.
+* text=auto eol=lf

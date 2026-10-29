@@ -54,6 +54,7 @@ Para usar o site, deixar três terminais abertos:
 
 ## Próximos passos
 
+0. Trocar a senha do banco e o `ZYCLOS_JWT_SECRET` (ver "Segurança e verificações" abaixo) e atualizar o `.env`.
 1. Entrar (não cadastrar) com `lipinho070509@gmail.com`, a conta ADMIN, e conferir que `/admin` abre.
    O cadastro com esse e-mail ou com o username `elipe` daria 409, porque já existem.
 2. Entrar uma vez com a conta `elipe` (ghostguedres@gmail.com): isso troca a senha em texto puro dela por hash.
@@ -64,25 +65,31 @@ Para usar o site, deixar três terminais abertos:
 Mudanças no código: fazer só por um Claude de cada vez (o do PC). Antes de começar `git pull`; no fim, commit e
 `git push` na branch `claude/new-session-s1fq3s`.
 
-## Decisões pendentes do dono do projeto
+## Decisões pendentes (situação em 29/10/2026)
 
-Recomendação: 5.4 apagar o roadmap; 5.5 apagar `plan/`; 5.9 desligar o show-sql já e remover a migração de senhas
-só quando a consulta abaixo der 0 (depois do passo 2).
+- 5.4 feito: `frontend/roadmap.md` atualizado (sem "dados mockados"/"sessão simulada"; mantidos paleta e migração JS).
+- 5.5 feito: apagada `frontend/.lovable/plan/` (três planos antigos do front 100% fictício); mantido
+  `.lovable/project.json`.
+- 5.9 show-sql: feito (`false` em `application.properties`).
+- 5.9 migração de senhas: **mantida**. A consulta abaixo deu 1 (de 4 contas, ativa). Ela segue o formato que o
+  código aceita (`$2a$`, `$2b$` ou `$2y$` + custo + 53 caracteres); a antiga `not like '$2%'` era mais frouxa:
+  `select count(*) from usuario where senha is null or senha !~ '^\$2[aby]\$[0-9]{2}\$[./A-Za-z0-9]{53}$';`
+  Quando der 0 (depois do passo 2 acima), apagar o trecho "MIGRAÇÃO TEMPORÁRIA" de
+  `UsuarioService.conferirCredenciais` e trocar o `if (isHashBCrypt(...))` por recusar o login quando não for hash.
 
-- 5.4: `frontend/roadmap.md` cita "dados mockados" e "sessão simulada" — atualizar ou apagar?
-- 5.5: apagar a pasta `frontend/.lovable/plan/` (manter `.lovable/project.json`)?
-- 5.9: `spring.jpa.show-sql=true` -> `false`? Remover a "MIGRAÇÃO TEMPORÁRIA" de senhas em texto puro em
-  `UsuarioService.conferirCredenciais` — só depois de confirmar com
-  `select count(*) from usuario where senha not like '$2%';` = 0 (hoje é 1: a conta id 1).
+## Segurança e verificações (29/10/2026)
 
-## Roteiro de teste manual (API ligada; 2 contas normais + 1 ADMIN)
+- **Pendente: trocar a senha do banco e o `ZYCLOS_JWT_SECRET`.** Trechos dos dois apareceram no terminal de uma
+  sessão. Os valores reais nunca foram commitados (histórico conferido) e o `.env.example` voltou aos placeholders.
+  Os dois só são lidos do `.env` na raiz (não há variáveis de ambiente, CI nem deploy usando).
+- Propostas de troca: só `PENDENTE` pode ser respondida, e só com `ACEITA` ou `RECUSADA` (senão 400).
+  Teste automatizado sem banco: `.\mvnw.cmd test` (`PropostaTrocaServiceTest`, 7 casos).
+- `.gitattributes` com `eol=lf`: no Windows com `core.autocrlf=true` o lint acusava milhares de `Delete ␍`.
+  O repositório já era todo LF; nenhum arquivo mudou de conteúdo.
 
-cadastro -> login (continuar logado na home) -> criar anúncio "Venda ou troca" -> ver na home e no catálogo ->
-`/perfil` e `/perfil/<outro>` -> seguir -> "Tenho interesse" e trocar mensagens (contador de não lidas some ao
-abrir) -> outro usuário "Propor troca" -> aceitar em `/trocas` -> conferir `/notificacoes` dos dois ->
-editar perfil (nome muda no cabeçalho; username repetido dá erro) -> denunciar anúncio -> como ADMIN, cada tela
-de `/admin` (criar/desativar categoria, excluir categoria com anúncios dá 409, analisar denúncia, períodos dos
-relatórios); conta comum em `/admin` vê "Acesso restrito" -> desligar a API: telas mostram erro, nenhum dado falso.
+## Roteiro de teste manual
+
+Checklist completo em `docs/ROTEIRO-TESTES.md` (2 contas comuns + 1 ADMIN, API ligada e desligada).
 
 ## Observação
 

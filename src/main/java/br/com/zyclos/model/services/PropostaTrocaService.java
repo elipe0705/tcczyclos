@@ -101,13 +101,18 @@ public class PropostaTrocaService {
         if (propostaTroca.getStatus() != null && !propostaTroca.getStatus().equals(propostaTrocaExistente.getStatus())) {
             UsuarioLogado.verificarAcesso(usuarioLogadoId.equals(propostaTrocaExistente.getDestinatarioId()),
                     "Só quem recebeu a proposta pode mudar o status.");
+            // Só responde uma vez: PENDENTE vira ACEITA ou RECUSADA (evita status inventado e aviso repetido)
+            if (!"PENDENTE".equals(propostaTrocaExistente.getStatus())) {
+                throw new IllegalArgumentException("Esta proposta de troca já foi respondida.");
+            }
+            if (!propostaTroca.getStatus().equals("ACEITA") && !propostaTroca.getStatus().equals("RECUSADA")) {
+                throw new IllegalArgumentException("Status inválido: use ACEITA ou RECUSADA.");
+            }
             propostaTrocaExistente.setStatus(propostaTroca.getStatus());
             // Avisa quem fez a proposta que ela foi aceita ou recusada
-            if (propostaTroca.getStatus().equals("ACEITA") || propostaTroca.getStatus().equals("RECUSADA")) {
-                String resultado = propostaTroca.getStatus().equals("ACEITA") ? "aceita" : "recusada";
-                notificacaoService.notificar(propostaTrocaExistente.getProponenteId(),
-                        "Sua proposta de troca foi " + resultado, "TROCA", "/trocas");
-            }
+            String resultado = propostaTroca.getStatus().equals("ACEITA") ? "aceita" : "recusada";
+            notificacaoService.notificar(propostaTrocaExistente.getProponenteId(),
+                    "Sua proposta de troca foi " + resultado, "TROCA", "/trocas");
         }
         propostaTrocaExistente.setDataAtualizacao(LocalDateTime.now());
         return propostaTrocaRepository.save(propostaTrocaExistente);
