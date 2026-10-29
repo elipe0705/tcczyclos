@@ -36,20 +36,38 @@ na raiz (`br.com.zyclos`, Supabase PostgreSQL, JWT) e front-end React (TanStack 
 - Não havia anúncios no banco (0). É preciso cadastrar 6–10 anúncios reais pelo site antes da apresentação.
 - Conta `elipe` (ghostguedres@gmail.com, id 1) ainda tem senha em texto puro; vira hash no primeiro login dela.
 
-## Onde paramos (problema atual)
+## Onde paramos
 
-No PC da escola (Windows, PowerShell), o cadastro mostra "Não foi possível conectar ao servidor do ZYCLOS."
-Isso significa que o site não alcança a API em `http://localhost:8080`. Próximos passos:
+Resolvido: o site mostrava "Não foi possível conectar ao servidor do ZYCLOS" porque a API não estava rodando.
+- O `.env` na raiz está completo (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `ZYCLOS_JWT_SECRET` com 64 caracteres)
+  e o Java é 21.
+- Com `.\mvnw.cmd spring-boot:run` a API sobe em ~8 s. A porta 5432 do Supabase funciona na rede da escola
+  (não precisa da 6543).
+- `GET http://localhost:8080/api/v1/categorias` responde 200 com as categorias do banco. O front usa
+  `http://localhost:8080/api/v1` e roda na 5173 (liberada no CORS).
 
-1. Abrir `http://localhost:8080/api/v1/categorias` no navegador. Se não abrir, a API não está rodando.
-2. Na raiz do projeto: `.\mvnw.cmd spring-boot:run` e esperar `Started ZyclosApplication`. Ler o erro se parar:
-   - `Could not resolve placeholder` -> falta o `.env` na raiz (pasta do `pom.xml`) ou algum campo vazio
-     (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `ZYCLOS_JWT_SECRET` com 32+ caracteres).
-   - `password authentication failed` -> `DB_PASSWORD` errada.
-   - `UnknownHostException`/timeout -> rede bloqueando a 5432: usar `:6543` e `&prepareThreshold=0` na `DB_URL`.
-3. Não criar conta nova com lipinho070509@gmail.com / `elipe`: já existem no banco (daria 409). Usar "Entrar".
+Para usar o site, deixar três terminais abertos:
+1. raiz do projeto: `.\mvnw.cmd spring-boot:run` (se fechar, a API cai);
+2. `frontend`: `npm run dev` e abrir `http://localhost:5173`;
+3. o `claude` (Claude Code). No Windows ele fica em `%USERPROFILE%\.local\bin`; se `claude` não for reconhecido,
+   adicionar essa pasta ao PATH do usuário ou rodar `& "$env:USERPROFILE\.local\bin\claude.exe"`.
+
+## Próximos passos
+
+1. Entrar (não cadastrar) com `lipinho070509@gmail.com`, a conta ADMIN, e conferir que `/admin` abre.
+   O cadastro com esse e-mail ou com o username `elipe` daria 409, porque já existem.
+2. Entrar uma vez com a conta `elipe` (ghostguedres@gmail.com): isso troca a senha em texto puro dela por hash.
+3. Cadastrar de 6 a 10 anúncios reais pelo site, com fotos (o banco está com 0 anúncios).
+4. Seguir o roteiro de teste manual abaixo.
+5. Resolver as decisões pendentes, juntar a branch na `main` (PR + merge) e, se quiser, apagar este relatório.
+
+Mudanças no código: fazer só por um Claude de cada vez (o do PC). Antes de começar `git pull`; no fim, commit e
+`git push` na branch `claude/new-session-s1fq3s`.
 
 ## Decisões pendentes do dono do projeto
+
+Recomendação: 5.4 apagar o roadmap; 5.5 apagar `plan/`; 5.9 desligar o show-sql já e remover a migração de senhas
+só quando a consulta abaixo der 0 (depois do passo 2).
 
 - 5.4: `frontend/roadmap.md` cita "dados mockados" e "sessão simulada" — atualizar ou apagar?
 - 5.5: apagar a pasta `frontend/.lovable/plan/` (manter `.lovable/project.json`)?
