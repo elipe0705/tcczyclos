@@ -15,3 +15,6 @@ dados/
 
 # Credenciais do banco (Supabase). Nunca commitar.
 .env
+
+# Dados de demonstração (contas com senha conhecida). Rodar à mão no Supabase, não commitar.
+docs/sql/seed_demo.sql
