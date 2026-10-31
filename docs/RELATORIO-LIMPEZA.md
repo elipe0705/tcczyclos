@@ -6,8 +6,9 @@ na raiz (`br.com.zyclos`, Supabase PostgreSQL, JWT) e front-end React (TanStack 
 
 ## Onde está o código
 
-- Branch: `claude/new-session-s1fq3s` (já no GitHub). A `main` NÃO foi alterada (é a que sincroniza com o Lovable).
-- Não fazer force-push, rebase nem amend (ver `frontend/AGENTS.md`). Juntar na `main` só depois de testar (PR + merge).
+- Todo o trabalho está na `main` (é a que sincroniza com o Lovable). Em 30/10/2026 a branch
+  `claude/new-session-s1fq3s` foi juntada na `main` (fast-forward, sem conflitos) e depois apagada, no PC e no GitHub.
+- Não fazer force-push, rebase nem amend (ver `frontend/AGENTS.md`).
 - Commits, a partir de `fea4d8a`:
   1. `8be1df7` Fase 1 — API: `GET /usuarios/{id}/publico`, `GET /usuarios/publico/{username}`,
      `GET /avaliacoes/usuario/{id}` (públicas); edição de perfil valida campos e username repetido (409).
@@ -24,6 +25,9 @@ na raiz (`br.com.zyclos`, Supabase PostgreSQL, JWT) e front-end React (TanStack 
   5. `d5e489e` Fase 5 — apagados `src/data/mock.js` e as fotos de demonstração; READMEs, `AGENTS.md`,
      `.env.example` (tirado o "@" a mais da `DB_URL`) e `docs/requests/zyclos.http` atualizados.
   6. `a1c1b8d` Fase 6 — verificação final: o grep de termos fictícios em `frontend/src` não acha nada.
+  7. `63a4858` Fase 7 — validação das respostas às propostas de troca, `show-sql` desligado, `.gitattributes` LF.
+  8. `be7c92d` — apagado `frontend/roadmap.md`.
+  9. `4103bfc` — `docs/sql/seed_demo.sql` no `.gitignore` (ver "O que já foi feito no banco").
 - Verificado: `npm run lint` (0 erros, 8 avisos que já existiam), `npm run build`, `mvnw -DskipTests compile`,
   e testes de ponta a ponta com a API real num PostgreSQL local (schema de `docs/sql/zyclos_db_supabase.sql`).
 
@@ -33,7 +37,12 @@ na raiz (`br.com.zyclos`, Supabase PostgreSQL, JWT) e front-end React (TanStack 
 - Conta `elipe07.` (lipinho070509@gmail.com, id 4) virou `ADMIN`.
 - Contas de teste `zyclos_teste1` e `zyclos_teste2` (ids 2 e 3) desativadas (`cod_status = false`).
   Desfazer: `update usuario set cod_status = true where id in (2, 3);`
-- Não havia anúncios no banco (0). É preciso cadastrar 6–10 anúncios reais pelo site antes da apresentação.
+- Dados de demonstração aplicados em 30/10/2026 com `docs/sql/seed_demo.sql` (rodado à mão no Supabase):
+  2 contas comuns, `demo_anaclara` e `demo_bruno` (senha no próprio arquivo), e 10 anúncios ATIVO, 2 por
+  categoria, cada um com 1 foto do Unsplash. Antes disso o banco tinha 0 anúncios.
+  O arquivo está no `.gitignore` (tem senha conhecida) e existe só no PC; para recriá-lo em outra máquina é preciso
+  copiá-lo. Para tirar a demonstração do site, rodar os dois `update` comentados no fim do script
+  (desativam contas e anúncios, sem apagar).
 - Conta `elipe` (ghostguedres@gmail.com, id 1) ainda tem senha em texto puro; vira hash no primeiro login dela.
 
 ## Onde paramos
@@ -55,17 +64,16 @@ Para usar o site, deixar três terminais abertos:
 ## Próximos passos
 
 0. Trocar a senha do banco e o `ZYCLOS_JWT_SECRET` (ver "Segurança e verificações" abaixo) e atualizar o `.env`.
-   Em 30/10/2026 o `ZYCLOS_JWT_SECRET` do `.env` estava vazio e a API não subia ("Defina a variável
-   ZYCLOS_JWT_SECRET com 32 ou mais caracteres"). Gerar um valor novo com o comando do `.env.example` e colar.
 1. Entrar (não cadastrar) com `lipinho070509@gmail.com`, a conta ADMIN, e conferir que `/admin` abre.
    O cadastro com esse e-mail ou com o username `elipe` daria 409, porque já existem.
 2. Entrar uma vez com a conta `elipe` (ghostguedres@gmail.com): isso troca a senha em texto puro dela por hash.
-3. Cadastrar de 6 a 10 anúncios reais pelo site, com fotos (o banco está com 0 anúncios).
+3. Decidir se a apresentação usa os 10 anúncios de demonstração ou anúncios reais cadastrados pelo site
+   (nesse caso, desativar a demonstração com o fim de `seed_demo.sql`).
 4. Seguir o roteiro de teste manual abaixo.
-5. Resolver as decisões pendentes, juntar a branch na `main` (PR + merge) e, se quiser, apagar este relatório.
+5. Resolver a migração de senhas (abaixo) e, se quiser, apagar este relatório.
 
 Mudanças no código: fazer só por um Claude de cada vez (o do PC). Antes de começar `git pull`; no fim, commit e
-`git push` na branch `claude/new-session-s1fq3s`.
+`git push` na `main`.
 
 ## Decisões pendentes (situação em 29/10/2026)
 
