@@ -55,6 +55,8 @@ Para usar o site, deixar três terminais abertos:
 ## Próximos passos
 
 0. Trocar a senha do banco e o `ZYCLOS_JWT_SECRET` (ver "Segurança e verificações" abaixo) e atualizar o `.env`.
+   Em 30/10/2026 o `ZYCLOS_JWT_SECRET` do `.env` estava vazio e a API não subia ("Defina a variável
+   ZYCLOS_JWT_SECRET com 32 ou mais caracteres"). Gerar um valor novo com o comando do `.env.example` e colar.
 1. Entrar (não cadastrar) com `lipinho070509@gmail.com`, a conta ADMIN, e conferir que `/admin` abre.
    O cadastro com esse e-mail ou com o username `elipe` daria 409, porque já existem.
 2. Entrar uma vez com a conta `elipe` (ghostguedres@gmail.com): isso troca a senha em texto puro dela por hash.
@@ -67,7 +69,7 @@ Mudanças no código: fazer só por um Claude de cada vez (o do PC). Antes de co
 
 ## Decisões pendentes (situação em 29/10/2026)
 
-- 5.4 feito: `frontend/roadmap.md` atualizado (sem "dados mockados"/"sessão simulada"; mantidos paleta e migração JS).
+- 5.4 feito: `frontend/roadmap.md` apagado (30/10/2026).
 - 5.5 feito: apagada `frontend/.lovable/plan/` (três planos antigos do front 100% fictício); mantido
   `.lovable/project.json`.
 - 5.9 show-sql: feito (`false` em `application.properties`).
