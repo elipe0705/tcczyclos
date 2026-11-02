@@ -61,6 +61,24 @@ Para usar o site, deixar três terminais abertos:
 3. o `claude` (Claude Code). No Windows ele fica em `%USERPROFILE%\.local\bin`; se `claude` não for reconhecido,
    adicionar essa pasta ao PATH do usuário ou rodar `& "$env:USERPROFILE\.local\bin\claude.exe"`.
 
+## Plano para amanhã (com o grupo)
+
+Para 03/11/2026. A ordem importa: hoje os 10 anúncios de demonstração são o catálogo inteiro, então desativar a
+demonstração antes de existirem anúncios reais deixa o site vazio.
+
+1. Subir tudo: `.\mvnw.cmd spring-boot:run` na raiz e `npm run dev` em `frontend`. Testar
+   `http://localhost:8080/api/v1/categorias` (deve responder 200 com as 5 categorias).
+2. Cada integrante entra com a própria conta e cadastra 2 ou 3 peças reais, com fotos próprias
+   (meta: 6 a 10 anúncios).
+3. Só depois disso, desativar a demonstração com os `update` do fim de `docs/sql/seed_demo.sql` e conferir que no
+   catálogo só ficaram os anúncios reais.
+4. Entrar uma vez com a conta `elipe` (ghostguedres@gmail.com). Confirmar que a consulta de senhas sem hash dá 0 e
+   remover a "MIGRAÇÃO TEMPORÁRIA" do `UsuarioService` (detalhes em "Decisões pendentes" abaixo). Usar a consulta
+   mais rígida de lá; a `select count(*) from usuario where senha not like '$2%';` também deve dar 0, mas deixa
+   passar valores que não são hash BCrypt de verdade.
+5. Fazer o roteiro de teste manual (`docs/ROTEIRO-TESTES.md`) com duas contas normais e a conta ADMIN `elipe07.`.
+6. Se não der tempo de cadastrar peças reais: manter a demonstração e avisar a banca que são dados de teste.
+
 ## Próximos passos
 
 0. Trocar a senha do banco e o `ZYCLOS_JWT_SECRET` (ver "Segurança e verificações" abaixo) e atualizar o `.env`.
