@@ -15,7 +15,13 @@ export default defineConfig({
       port: 5173,
       strictPort: true,
       allowedHosts: [".trycloudflare.com"],
-      proxy: { "/api": "http://localhost:8080" },
+      proxy: {
+        "/api": {
+          target: "http://localhost:8080",
+          // Sem o cabeçalho Origin (o endereço do túnel), a API recebe o pedido como local e o CORS não barra
+          configure: (proxy) => proxy.on("proxyReq", (proxyReq) => proxyReq.removeHeader("origin")),
+        },
+      },
     },
   },
   tanstackStart: {
