@@ -71,6 +71,28 @@ Para usar o site, deixar três terminais abertos:
   `demo_bruno` (ativas), `zyclos_teste1` e `zyclos_teste2` (desativadas).
 - Segurança: a troca da senha do banco e do `ZYCLOS_JWT_SECRET` (item 0 abaixo) ainda não foi confirmada.
 
+## Onde paramos em 06/11/2026, à tarde (para terminar em casa)
+
+Já está na `main` e no Supabase (não refazer):
+- `/sobre` com objetivo, justificativa e ODS 12 (link no menu e no rodapé).
+- Logo: fora do Lovable aparece o ícone + "ZYCLOS"; foto principal sem cortar a cabeça.
+- Patch "Acabamento visual para a entrega do TCC" (commit `9f96139`): contraste, categorias com foto e contagem,
+  selo ODS 12 na home, cartões de carregamento, rodapé no fim da página com crédito do TCC, lista de UF nos
+  formulários, sem "Favoritar" no próprio anúncio.
+- Migração de senhas em texto puro removida (0 contas sem hash).
+- Supabase: anúncio 11 corrigido ("Tênis Asics GEL-NYC", estado `SP`) e nome do usuário 1
+  "Luiz Felipe Louback Silva".
+
+Falta:
+1. **Gravar o vídeo da entrega** (roteiro em "Entrega final: vídeo").
+2. Confirmar o texto do rodapé: "Técnico em Informática, ITB Belval" (em `site-shell.jsx`).
+3. Anúncios reais: hoje 1 real e 10 de demonstração. Com 6+ reais, fazer o passo 3 (tirar a demonstração).
+4. Depois da entrega: trocar a senha do banco e o `ZYCLOS_JWT_SECRET` e atualizar o `.env` de cada PC.
+
+Em casa: `git pull` na pasta do projeto, conferir o `.env` na raiz (não vem pelo GitHub), `.\mvnw.cmd
+spring-boot:run` na raiz e `npm run dev` em `frontend`. Na escola, este PC usava
+`C:\Users\rm99692.FIEB.000\tcczyclos` (o `.env` foi criado ali).
+
 ## Onde paramos em 06/11/2026, 11h (PC da escola, usuário `rm99692.FIEB`)
 
 - Neste PC a pasta do usuário é `C:\Users\rm99692.FIEB\` (não `rm99692`). Projeto em
