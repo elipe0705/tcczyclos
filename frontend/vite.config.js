@@ -8,7 +8,16 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
   // A porta padrão do Lovable é 8080, a mesma da API Spring Boot. O site roda na 5173 (liberada no CORS).
-  vite: { server: { port: 5173, strictPort: true } },
+  // Para mostrar o site a quem está em outra rede, por um túnel (ex.: Cloudflare Tunnel, endereço
+  // *.trycloudflare.com): o Vite aceita esse endereço e repassa /api para a API na 8080 deste PC
+  vite: {
+    server: {
+      port: 5173,
+      strictPort: true,
+      allowedHosts: [".trycloudflare.com"],
+      proxy: { "/api": "http://localhost:8080" },
+    },
+  },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.js (our SSR error wrapper).
     // nitro/vite builds from this
