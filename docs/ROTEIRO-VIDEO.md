@@ -12,12 +12,6 @@ sem falar, e pare alguns segundos em cada tela (a narração precisa de tempo).
 | D. CRUD com o banco de dados (a parte mais importante e mais difícil) | **Felipe** | ~2 min |
 | E. Encerramento | **Paty** | ~20 s |
 
---- | --- | --- |
-| A. Slide de abertura | **Paty** | ~1 min 30 s |
-| B. Tour pelo site | **Felipe** | ~2 min 30 s |
-| C. CRUD com o banco + painel admin | **Japa (Guilherme)** | ~3 min |
-| D. Encerramento | **Paty** | ~20 s |
-
 ---
 
 ## Preparação (Japa e Felipe, antes de gravar)
