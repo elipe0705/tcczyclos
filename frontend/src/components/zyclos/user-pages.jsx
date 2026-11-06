@@ -1,3 +1,4 @@
+import { UFS } from "@/lib/format";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
@@ -512,7 +513,7 @@ export function ListingForm({ edit = false, id }) {
               <button
                 key={label}
                 onClick={() => setStep(i + 1)}
-                className={`border-t-4 py-3 text-xs font-bold ${step >= i + 1 ? "border-primary text-primary" : "border-border text-muted-foreground"}`}
+                className={`border-t-4 py-3 text-xs font-bold ${step >= i + 1 ? "border-primary text-secondary" : "border-border text-muted-foreground"}`}
               >
                 {i + 1}. {label}
               </button>
@@ -571,13 +572,20 @@ export function ListingForm({ edit = false, id }) {
                   value={values.city}
                   onChange={set("city")}
                 />
-                <Field
-                  label="Estado (UF)"
-                  name="state"
-                  required={false}
-                  value={values.state}
-                  onChange={set("state")}
-                />
+                <label className="text-sm font-semibold">
+                  Estado (UF)
+                  <select
+                    name="state"
+                    value={values.state}
+                    onChange={(e) => set("state")(e.target.value)}
+                    className="mt-2 h-11 w-full rounded-md border bg-background px-3 font-normal"
+                  >
+                    <option value="">Selecione</option>
+                    {UFS.map((uf) => (
+                      <option key={uf}>{uf}</option>
+                    ))}
+                  </select>
+                </label>
                 <label className="text-sm font-semibold sm:col-span-2">
                   Descrição
                   <textarea
@@ -611,7 +619,7 @@ export function ListingForm({ edit = false, id }) {
                         className="mx-auto mb-4 size-48 rounded-lg object-cover"
                       />
                     ) : (
-                      <ImagePlus className="mx-auto mb-4 size-10 text-primary" />
+                      <ImagePlus className="mx-auto mb-4 size-10 text-secondary" />
                     )}
                     <strong className="block">Adicione a foto da peça</strong>
                     <span className="mt-1 block text-sm text-muted-foreground">

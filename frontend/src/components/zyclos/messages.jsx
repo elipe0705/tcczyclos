@@ -235,7 +235,7 @@ function Chat({ thread, user, onBack }) {
             <Link
               to="/perfil/$username"
               params={{ username: thread.other.username }}
-              className="block truncate font-bold hover:text-primary"
+              className="block truncate font-bold hover:text-secondary"
             >
               {thread.otherName}
             </Link>

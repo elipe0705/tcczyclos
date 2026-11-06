@@ -90,7 +90,7 @@ function Notifications() {
                   onClick={() => open.mutate(n)}
                   className={`flex w-full items-start gap-4 p-5 text-left hover:bg-muted ${n.lida ? "opacity-60" : ""}`}
                 >
-                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-primary">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-secondary">
                     <Icon className="size-5" />
                   </span>
                   <span className="flex-1">

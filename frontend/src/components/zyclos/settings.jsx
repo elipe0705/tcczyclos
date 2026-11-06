@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useApp } from "@/context/app-context";
 import { api } from "@/lib/api";
+import { UFS } from "@/lib/format";
 import { Empty, Loading, QueryError, UserAvatar } from "./common";
 import { Page } from "./page";
 // Mesmos limites das colunas da tabela usuario (e da validação do UsuarioService)
@@ -180,12 +181,19 @@ function ProfileFormFields({ usuario }) {
             </span>
           </label>
           <TextField label="Cidade (opcional)" value={values.cidade} onChange={set("cidade")} />
-          <TextField
-            label="Estado (UF)"
-            value={values.estado}
-            onChange={set("estado")}
-            maxLength={2}
-          />
+          <label className="text-sm font-semibold">
+            Estado (UF)
+            <select
+              value={values.estado.toUpperCase()}
+              onChange={(e) => set("estado")(e.target.value)}
+              className="mt-2 h-10 w-full rounded-md border bg-background px-3 font-normal"
+            >
+              <option value="">Selecione</option>
+              {UFS.map((uf) => (
+                <option key={uf}>{uf}</option>
+              ))}
+            </select>
+          </label>
         </div>
       </section>
       <section className="rounded-lg border bg-card p-6">

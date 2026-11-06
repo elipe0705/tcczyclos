@@ -393,7 +393,7 @@ export function Dashboard() {
                   <div key={label} className="rounded-lg border bg-card p-5 shadow-sm">
                     <div className="flex justify-between">
                       <span className="text-sm font-medium text-muted-foreground">{label}</span>
-                      <div className="rounded-md bg-primary/10 p-2 text-primary">
+                      <div className="rounded-md bg-primary/10 p-2 text-secondary">
                         <Icon className="size-5" />
                       </div>
                     </div>

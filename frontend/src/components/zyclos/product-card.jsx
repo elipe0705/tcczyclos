@@ -28,7 +28,7 @@ export function ProductCard({ product }) {
         >
           <Heart className={liked ? "fill-highlight text-highlight" : "text-foreground"} />
         </Button>
-        <span className="absolute bottom-3 left-3 rounded-full bg-background/90 px-3 py-1 text-xs font-semibold text-primary backdrop-blur">
+        <span className="absolute bottom-3 left-3 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow-sm">
           {product.deal}
         </span>
       </div>
@@ -39,7 +39,7 @@ export function ProductCard({ product }) {
           </p>
           <h3 className="mt-1 truncate font-display font-bold text-foreground">{product.name}</h3>
         </div>
-        <p className="font-display text-xl font-extrabold text-primary">
+        <p className="font-display text-xl font-extrabold text-secondary">
           {formatPrice(product.price)}
         </p>
         <div className="flex items-center justify-between gap-2 border-t pt-3 text-xs text-muted-foreground">
@@ -54,7 +54,7 @@ export function ProductCard({ product }) {
           <Link
             to="/anuncios/$id"
             params={{ id: product.id }}
-            className="font-bold text-primary hover:text-secondary"
+            className="font-bold text-secondary hover:text-foreground"
           >
             Ver peça
           </Link>

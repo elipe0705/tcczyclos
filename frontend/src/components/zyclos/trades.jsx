@@ -248,7 +248,7 @@ function TradeListing({ label, listing }) {
   return (
     <div className="min-w-0 max-w-48 justify-self-center rounded-lg border p-3 text-center">
       {listing?.status === "ATIVO" ? (
-        <Link to="/anuncios/$id" params={{ id: listing.id }} className="block hover:text-primary">
+        <Link to="/anuncios/$id" params={{ id: listing.id }} className="block hover:text-secondary">
           {body}
         </Link>
       ) : (

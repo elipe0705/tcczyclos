@@ -3,7 +3,7 @@ import { Filter, Search, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { deals, useCatalog } from "@/data/catalog";
-import { CatalogError } from "./common";
+import { CatalogError, ProductSkeletons } from "./common";
 import { ProductCard } from "./product-card";
 import { Page } from "./page";
 export function CatalogPage({ initialQuery = "", initialCategory = "Todos" }) {
@@ -180,7 +180,9 @@ export function CatalogPage({ initialQuery = "", initialCategory = "Todos" }) {
           </div>
           {error ? (
             <CatalogError error={error} onRetry={refetch} className="min-h-80" />
-          ) : isLoading ? null : filtered.length ? (
+          ) : isLoading ? (
+            <ProductSkeletons count={6} className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3" />
+          ) : filtered.length ? (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {filtered.map((product) => (
                 <ProductCard key={product.id} product={product} />

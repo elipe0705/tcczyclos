@@ -56,7 +56,7 @@ export function SiteShell({ children }) {
     void navigate({ to: "/" });
   }
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
       {/* Login, cadastro e /admin têm layout próprio: sem cabeçalho e rodapé do site.
           A página fica sempre no mesmo elemento (div abaixo): trocar entre os dois layouts não
           remonta a página. Antes, ao entrar, a tela de login remontava e apagava o token novo */}
@@ -261,7 +261,9 @@ export function SiteShell({ children }) {
           )}
         </header>
       )}
-      <div role={standalone ? undefined : "main"}>{children}</div>
+      <div role={standalone ? undefined : "main"} className="flex-1">
+        {children}
+      </div>
       {!standalone && (
         <footer className="border-t bg-surface-dark text-primary-foreground">
           <div className="mx-auto grid max-w-7xl gap-8 px-6 py-10 md:grid-cols-[1.5fr_1fr_1fr]">
@@ -286,6 +288,14 @@ export function SiteShell({ children }) {
                 <Link to="/configuracoes">Configurações</Link>
                 {user?.type === "ADMIN" && <Link to="/admin">Área administrativa</Link>}
               </div>
+            </div>
+          </div>
+          <div className="border-t border-primary-foreground/10">
+            <div className="mx-auto flex max-w-7xl flex-col gap-2 px-6 py-5 text-xs text-primary-foreground/60 sm:flex-row sm:items-center sm:justify-between">
+              <p>
+                © 2026 ZYCLOS · Trabalho de Conclusão de Curso — Técnico em Informática, ITB Belval
+              </p>
+              <p>Alinhado à ODS 12 da ONU: Consumo e Produção Responsáveis</p>
             </div>
           </div>
         </footer>

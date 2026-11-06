@@ -250,7 +250,7 @@ function ProfileReviews({ profileId }) {
               <Link
                 to="/perfil/$username"
                 params={{ username: r.autorUsername }}
-                className="font-bold hover:text-primary"
+                className="font-bold hover:text-secondary"
               >
                 {r.autorNome}
               </Link>

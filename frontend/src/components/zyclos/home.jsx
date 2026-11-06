@@ -1,9 +1,18 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, BadgeDollarSign, Leaf, RefreshCcw, ShoppingBag, Shirt } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeDollarSign,
+  Footprints,
+  Glasses,
+  Leaf,
+  RefreshCcw,
+  ShoppingBag,
+  Shirt,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import hero from "@/assets/hero-urban-young.jpg";
 import { acceptsTrade, useCatalog } from "@/data/catalog";
-import { CatalogError } from "./common";
+import { CatalogError, ProductSkeletons } from "./common";
 import { ProductCard } from "./product-card";
 const pillars = [
   [ShoppingBag, "Compre", "Encontre peças que combinam com você."],
@@ -11,6 +20,14 @@ const pillars = [
   [RefreshCcw, "Troque", "Renove seu estilo com a comunidade."],
   [Leaf, "Sustentabilidade", "Prolongue a vida útil das roupas."],
 ];
+// Ícone de reserva para categoria sem foto (o nome decide; o resto usa a camiseta)
+function categoryIcon(nome) {
+  const n = nome.toLowerCase();
+  if (n.includes("calçad") || n.includes("tênis") || n.includes("sapato")) return Footprints;
+  if (n.includes("acessór") || n.includes("óculos")) return Glasses;
+  if (n.includes("bolsa") || n.includes("mochila")) return ShoppingBag;
+  return Shirt;
+}
 export function HomePage() {
   const { products, categories, isLoading, error, refetch } = useCatalog();
   // Números reais do catálogo já carregado ("—" enquanto carrega)
@@ -77,7 +94,7 @@ export function HomePage() {
           </div>
           <Link
             to="/anuncios"
-            className="hidden items-center gap-1 text-sm font-bold text-primary sm:flex"
+            className="hidden items-center gap-1 text-sm font-bold text-secondary sm:flex"
           >
             Ver todas <ArrowRight className="size-4" />
           </Link>
@@ -93,18 +110,41 @@ export function HomePage() {
             Nenhuma categoria cadastrada ainda.
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
-            {categories.map(({ id, nome: category }) => (
-              <Link
-                key={id}
-                to="/anuncios"
-                search={{ categoria: category }}
-                className="group grid aspect-square place-items-center rounded-lg border bg-card p-3 text-center transition hover:border-primary hover:bg-muted"
-              >
-                <Shirt className="mb-2 size-7 text-secondary transition group-hover:scale-110" />
-                <span className="text-sm font-bold">{category}</span>
-              </Link>
-            ))}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {categories.map(({ id, nome: category }) => {
+              // A foto da categoria é a do primeiro anúncio dela que tiver foto
+              const inCategory = products.filter((p) => p.categoryId === id);
+              const photo = inCategory.find((p) => p.image)?.image;
+              const Icon = categoryIcon(category);
+              return (
+                <Link
+                  key={id}
+                  to="/anuncios"
+                  search={{ categoria: category }}
+                  className="group relative grid aspect-[4/3] overflow-hidden sm:aspect-[4/5] rounded-lg border bg-card transition hover:border-secondary"
+                >
+                  {photo ? (
+                    <img
+                      src={photo}
+                      alt=""
+                      loading="lazy"
+                      className="absolute inset-0 size-full object-cover opacity-70 transition duration-500 group-hover:scale-105 group-hover:opacity-90"
+                    />
+                  ) : (
+                    <Icon className="absolute left-1/2 top-[38%] size-10 -translate-x-1/2 -translate-y-1/2 text-secondary transition group-hover:scale-110" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                  <div className="relative self-end p-4">
+                    <span className="block font-display text-lg font-bold text-white">
+                      {category}
+                    </span>
+                    <span className="text-xs text-white/75">
+                      {inCategory.length === 1 ? "1 peça" : `${inCategory.length} peças`}
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </section>
@@ -121,6 +161,8 @@ export function HomePage() {
           </div>
           {error ? (
             <CatalogError error={error} onRetry={refetch} />
+          ) : isLoading ? (
+            <ProductSkeletons className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4" />
           ) : products.length ? (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {products.slice(0, 4).map((product) => (
@@ -129,7 +171,7 @@ export function HomePage() {
             </div>
           ) : (
             <p className="rounded-lg border border-dashed p-10 text-center text-muted-foreground">
-              {isLoading ? "Carregando anúncios..." : "Nenhum anúncio publicado ainda."}
+              Nenhum anúncio publicado ainda.
             </p>
           )}
         </div>
@@ -141,12 +183,20 @@ export function HomePage() {
             <h2 className="mt-5 font-display text-3xl font-extrabold">
               Dar uma nova vida para uma peça também é cuidar do planeta.
             </h2>
+            <Link
+              to="/sobre"
+              className="mt-5 inline-flex items-center gap-2 rounded-full border border-highlight-foreground/40 px-4 py-2 text-sm font-bold hover:bg-highlight-foreground/10"
+            >
+              ODS 12 · Consumo e Produção Responsáveis <ArrowRight className="size-4" />
+            </Link>
           </div>
           {!error && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               {stats.map(([n, label]) => (
                 <div key={label} className="border-l border-highlight-foreground/30 p-4">
-                  <p className="font-display text-3xl font-black">{isLoading ? "—" : n}</p>
+                  <p className="font-display text-3xl font-black sm:text-4xl">
+                    {isLoading ? "—" : n}
+                  </p>
                   <p className="text-sm">{label}</p>
                 </div>
               ))}

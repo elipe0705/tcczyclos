@@ -45,7 +45,7 @@ export function ProductDetail({ product }) {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
       <p className="mb-6 text-sm text-muted-foreground">
-        <Link to="/anuncios" className="hover:text-primary">
+        <Link to="/anuncios" className="hover:text-secondary">
           Anúncios
         </Link>{" "}
         / {product.category} / <span className="text-foreground">{product.name}</span>
@@ -80,7 +80,7 @@ export function ProductDetail({ product }) {
             {product.deal}
           </span>
           <h1 className="mt-4 font-display text-3xl font-black sm:text-4xl">{product.name}</h1>
-          <p className="mt-3 font-display text-3xl font-black text-primary">
+          <p className="mt-3 font-display text-3xl font-black text-secondary">
             {formatPrice(product.price)}
           </p>
           <div className="mt-7 grid grid-cols-2 gap-y-5 border-y py-6 text-sm">
@@ -144,14 +144,16 @@ export function ProductDetail({ product }) {
                 </Link>
               </Button>
             )}
-            <Button
-              variant="ghost"
-              className="sm:col-span-2"
-              onClick={() => void toggleFavorite(product.id)}
-            >
-              <Heart className={liked ? "fill-highlight text-highlight" : ""} />
-              {liked ? "Favoritado" : "Favoritar"}
-            </Button>
+            {!mine && (
+              <Button
+                variant="ghost"
+                className="sm:col-span-2"
+                onClick={() => void toggleFavorite(product.id)}
+              >
+                <Heart className={liked ? "fill-highlight text-highlight" : ""} />
+                {liked ? "Favoritado" : "Favoritar"}
+              </Button>
+            )}
           </div>
           <SellerCard product={product} />
           {user && !mine && (
@@ -183,7 +185,7 @@ function SellerCard({ product }) {
             <Link
               to="/perfil/$username"
               params={{ username: product.sellerUsername }}
-              className="font-bold hover:text-primary"
+              className="font-bold hover:text-secondary"
             >
               {name}
             </Link>
