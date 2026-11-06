@@ -28,7 +28,7 @@ export function HomePage() {
           width={1920}
           height={1080}
           fetchPriority="high"
-          className="absolute inset-0 size-full object-cover object-[67%_center] lg:object-center"
+          className="absolute inset-0 size-full object-cover object-[76%_top] lg:object-[center_top]"
         />
         <div className="absolute inset-0 bg-hero-overlay" />
         <div className="relative mx-auto flex min-h-[560px] max-w-7xl items-end px-6 pb-14 pt-24 lg:min-h-[620px] lg:items-center lg:py-20">

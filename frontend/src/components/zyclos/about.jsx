@@ -57,7 +57,7 @@ export function AboutPage() {
           src={hero}
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 size-full object-cover object-[67%_center] opacity-40"
+          className="absolute inset-0 size-full object-cover object-[76%_top] lg:object-[center_top] opacity-40"
         />
         <div className="absolute inset-0 bg-hero-overlay" />
         <div className="relative mx-auto max-w-7xl px-6 py-20 sm:py-28">
