@@ -71,6 +71,24 @@ Para usar o site, deixar três terminais abertos:
   `demo_bruno` (ativas), `zyclos_teste1` e `zyclos_teste2` (desativadas).
 - Segurança: a troca da senha do banco e do `ZYCLOS_JWT_SECRET` (item 0 abaixo) ainda não foi confirmada.
 
+## Divisão da gravação (06/11/2026, noite)
+
+Roteiro de gravação de tela (cenas, cliques e tempos, sem falas) em `docs/ROTEIRO-VIDEO.md`. As falas são
+escritas por outro integrante e narradas depois, por cima do vídeo.
+- A. Slide de abertura (objetivo, justificativa, ODS 12): **Paty**.
+- B. Tour pelo site (conta Luiz Felipe): **Japa (Guilherme)**.
+- C. Área administrativa (conta Equipe ZYCLOS: Dashboard, Anúncios, Usuários, Denúncias, Relatórios):
+  **Japa (Guilherme)**.
+- D. CRUD de categorias com o Supabase aberto ao lado (criar, alterar, excluir; bônus: excluir categoria com
+  anúncios dá erro): **Felipe**.
+- E. Encerramento com a frase de efeito: **Paty**.
+
+Problema visto ao gravar: o painel admin mostrou "Não foi possível conectar ao servidor do ZYCLOS" porque a API
+tinha parado. Solução: subir de novo (`.\mvnw.cmd spring-boot:run` num terminal só dela, esperar
+`Started ZyclosApplication`) e clicar em "Tentar novamente". Se a API foi iniciada por uma sessão do Claude Code,
+ela cai quando a sessão fecha. Depois de mudar o nome da conta ADMIN para "Equipe ZYCLOS", é preciso sair e
+entrar de novo para o cabeçalho atualizar.
+
 ## Preparação para gravar o vídeo (06/11/2026, noite)
 
 Ensaio feito pelo Claude do Chrome com a conta ADMIN: os 4 passos do roteiro funcionaram (Sobre; Início →
