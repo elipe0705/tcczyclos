@@ -61,45 +61,57 @@ Para usar o site, deixar três terminais abertos:
 3. o `claude` (Claude Code). No Windows ele fica em `%USERPROFILE%\.local\bin`; se `claude` não for reconhecido,
    adicionar essa pasta ao PATH do usuário ou rodar `& "$env:USERPROFILE\.local\bin\claude.exe"`.
 
-## Plano para amanhã (com o grupo)
+## Situação em 06/11/2026 (conferida direto no Supabase)
 
-Para 03/11/2026. A ordem importa: hoje os 10 anúncios de demonstração são o catálogo inteiro, então desativar a
-demonstração antes de existirem anúncios reais deixa o site vazio.
+O plano de 03/11 ainda não foi feito:
+- Catálogo: 10 anúncios ativos, **todos de demonstração** (`demo_anaclara` e `demo_bruno`); 0 anúncios reais.
+- Senhas: 1 conta ainda sem hash BCrypt (`elipe`, id 1), então a migração temporária continua no código.
+- Contas: `elipe` (USUARIO), `elipe07.` (ADMIN), `elipe078765.` (USUARIO, id 5, nova), `demo_anaclara` e
+  `demo_bruno` (ativas), `zyclos_teste1` e `zyclos_teste2` (desativadas).
+- Segurança: a troca da senha do banco e do `ZYCLOS_JWT_SECRET` (item 0 abaixo) ainda não foi confirmada.
 
-1. Subir tudo: `.\mvnw.cmd spring-boot:run` na raiz e `npm run dev` em `frontend`. Testar
-   `http://localhost:8080/api/v1/categorias` (deve responder 200 com as 5 categorias).
-2. Cada integrante entra com a própria conta e cadastra 2 ou 3 peças reais, com fotos próprias
-   (meta: 6 a 10 anúncios).
-3. Só depois disso, desativar a demonstração com os `update` do fim de `docs/sql/seed_demo.sql` e conferir que no
-   catálogo só ficaram os anúncios reais.
-4. Entrar uma vez com a conta `elipe` (ghostguedres@gmail.com). Confirmar que a consulta de senhas sem hash dá 0 e
-   remover a "MIGRAÇÃO TEMPORÁRIA" do `UsuarioService` (detalhes em "Decisões pendentes" abaixo). Usar a consulta
-   mais rígida de lá; a `select count(*) from usuario where senha not like '$2%';` também deve dar 0, mas deixa
-   passar valores que não são hash BCrypt de verdade.
-5. Fazer o roteiro de teste manual (`docs/ROTEIRO-TESTES.md`) com duas contas normais e a conta ADMIN `elipe07.`.
-6. Se não der tempo de cadastrar peças reais: manter a demonstração e avisar a banca que são dados de teste.
+## Tarefas para o Claude Code (nesta ordem)
 
-## Próximos passos
+0. **Ambiente.** `git checkout main` e `git pull`. Conferir que o `.env` na raiz tem os quatro campos preenchidos
+   (sem mostrar os valores no terminal). Se o dono for trocar os segredos agora:
+   - senha do banco: Supabase → projeto `zyclos` → Project Settings → Database → Reset database password;
+     colar em `DB_PASSWORD`;
+   - `ZYCLOS_JWT_SECRET`: gerar no PowerShell. Neste PC o PowerShell é o 5.1, onde
+     `[Security.Cryptography.RandomNumberGenerator]::GetBytes(48)` dá "não contém um método denominado 'GetBytes'".
+     Usar:
+     `$b = New-Object byte[] 48; [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($b); [Convert]::ToBase64String($b)`
+   - O Claude Code não tem permissão de escrever no `.env`: o dono cola os valores com `notepad .env`.
+     Todo PC que rodar a API precisa do mesmo `.env` (passar por canal privado, nunca pelo GitHub).
+1. **Subir tudo.** `.\mvnw.cmd spring-boot:run` na raiz (esperar `Started ZyclosApplication`) e `npm run dev` em
+   `frontend` (rodar `npm ci` antes se faltar `node_modules`). Testar `http://localhost:8080/api/v1/categorias`
+   (200 com 5 categorias) e `http://localhost:5173`.
+2. **Anúncios reais (o grupo faz pelo site).** Cada integrante entra com a própria conta e cadastra 2 ou 3 peças
+   reais com fotos próprias (link de imagem). Meta: 6 a 10. O Claude Code pode conferir pela API/banco quantos
+   anúncios reais existem (vendedor sem prefixo `demo_`).
+3. **Tirar a demonstração**, só quando houver anúncios reais: rodar os dois `update` comentados no fim de
+   `docs/sql/seed_demo.sql` (desativam contas e anúncios demo, sem apagar) e conferir que o catálogo só mostra
+   anúncios reais. Se o arquivo não existir neste PC (está no `.gitignore`), desativar direto:
+   `update anuncio set status = 'INATIVO' where vendedor_id in (select id from usuario where username like 'demo\_%');`
+   `update usuario set cod_status = false where username like 'demo\_%';`
+4. **Migração de senhas.** O dono entra uma vez no site com `elipe` (ghostguedres@gmail.com). Rodar a consulta
+   rígida de "Decisões pendentes"; se der 0, remover a "MIGRAÇÃO TEMPORÁRIA" de
+   `UsuarioService.conferirCredenciais` (senha que não é hash = login recusado). Rodar `.\mvnw.cmd test` e compile.
+5. **Teste manual** com `docs/ROTEIRO-TESTES.md` (2 contas comuns + ADMIN `elipe07.`, API ligada e desligada).
+6. **Fechar:** `npm run lint`, `npm run build`, `.\mvnw.cmd -DskipTests compile`; commit e push na `main`;
+   atualizar este relatório.
 
-0. Trocar a senha do banco e o `ZYCLOS_JWT_SECRET` (ver "Segurança e verificações" abaixo) e atualizar o `.env`.
-1. Entrar (não cadastrar) com `lipinho070509@gmail.com`, a conta ADMIN, e conferir que `/admin` abre.
-   O cadastro com esse e-mail ou com o username `elipe` daria 409, porque já existem.
-2. Entrar uma vez com a conta `elipe` (ghostguedres@gmail.com): isso troca a senha em texto puro dela por hash.
-3. Decidir se a apresentação usa os 10 anúncios de demonstração ou anúncios reais cadastrados pelo site
-   (nesse caso, desativar a demonstração com o fim de `seed_demo.sql`).
-4. Seguir o roteiro de teste manual abaixo.
-5. Resolver a migração de senhas (abaixo) e, se quiser, apagar este relatório.
+Se não houver tempo para o passo 2: manter a demonstração e avisar a banca que são dados de teste.
 
-Mudanças no código: fazer só por um Claude de cada vez (o do PC). Antes de começar `git pull`; no fim, commit e
-`git push` na `main`.
+Regras: um Claude por vez mexendo no código; nada de force-push, rebase ou amend; textos do site em português;
+front só em JS/JSX; sem novas dependências; não mudar o schema do banco.
 
-## Decisões pendentes (situação em 29/10/2026)
+## Decisões pendentes (situação em 06/11/2026)
 
 - 5.4 feito: `frontend/roadmap.md` apagado (30/10/2026).
 - 5.5 feito: apagada `frontend/.lovable/plan/` (três planos antigos do front 100% fictício); mantido
   `.lovable/project.json`.
 - 5.9 show-sql: feito (`false` em `application.properties`).
-- 5.9 migração de senhas: **mantida**. A consulta abaixo deu 1 (de 4 contas, ativa). Ela segue o formato que o
+- 5.9 migração de senhas: **mantida**. A consulta abaixo deu 1 em 06/11 (a conta `elipe`, id 1). Ela segue o formato que o
   código aceita (`$2a$`, `$2b$` ou `$2y$` + custo + 53 caracteres); a antiga `not like '$2%'` era mais frouxa:
   `select count(*) from usuario where senha is null or senha !~ '^\$2[aby]\$[0-9]{2}\$[./A-Za-z0-9]{53}$';`
   Quando der 0 (depois do passo 2 acima), apagar o trecho "MIGRAÇÃO TEMPORÁRIA" de
