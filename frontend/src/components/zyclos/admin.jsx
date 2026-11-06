@@ -139,7 +139,14 @@ function AdminShell({ user, children }) {
         className={`fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-surface-dark p-5 text-primary-foreground transition-transform lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="flex items-center justify-between">
-          <Brand />
+          {/* Clicar no logo volta para a página inicial do site, sem sair da conta */}
+          <Link
+            to="/"
+            aria-label="Voltar para a página inicial"
+            className="rounded-md hover:opacity-80"
+          >
+            <Brand />
+          </Link>
           <Button
             variant="ghost"
             size="icon"
