@@ -1,5 +1,8 @@
 // Cliente da API REST do ZYCLOS (Spring Boot). A URL base vem de VITE_API_URL (arquivo .env).
-export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080/api/v1";
+// Sem ela, usa a API na porta 8080 do mesmo endereço em que o site foi aberto: "localhost" no próprio PC,
+// ou o IP do PC (ex.: 192.168.15.6) quando outro aparelho da rede abre o site
+const host = typeof window === "undefined" ? "localhost" : window.location.hostname;
+export const API_URL = import.meta.env.VITE_API_URL ?? `http://${host}:8080/api/v1`;
 // Token JWT recebido no login. "Lembrar de mim" guarda no localStorage; senão, só na aba (sessionStorage)
 const TOKEN_KEY = "zyclos.token";
 export class ApiError extends Error {
