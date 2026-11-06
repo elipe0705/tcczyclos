@@ -71,6 +71,20 @@ Para usar o site, deixar três terminais abertos:
   `demo_bruno` (ativas), `zyclos_teste1` e `zyclos_teste2` (desativadas).
 - Segurança: a troca da senha do banco e do `ZYCLOS_JWT_SECRET` (item 0 abaixo) ainda não foi confirmada.
 
+## Onde paramos em 06/11/2026, 11h (PC da escola, usuário `rm99692.FIEB`)
+
+- Neste PC a pasta do usuário é `C:\Users\rm99692.FIEB\` (não `rm99692`). Projeto em
+  `C:\Users\rm99692.FIEB\tcczyclos`, com `.env` na raiz e os quatro campos preenchidos (URL e usuário conferidos;
+  senha não é o texto do modelo).
+- A API falhou uma vez com "Unable to determine Dialect without JDBC metadata" (não conectou ao banco). Os logs do
+  Supabase não mostram tentativa nem erro de senha nessa hora, e `Test-NetConnection ... -Port 5432` deu
+  `TcpTestSucceeded : True`. Depois disso houve conexões aceitas no Supabase. **Próximo passo: rodar
+  `.\mvnw.cmd spring-boot:run` de novo** e, se repetir, ver a primeira linha `Caused by`
+  (`.\mvnw.cmd spring-boot:run 2>&1 | Select-String "Caused by" | Select-Object -First 3`).
+- Cuidado com comandos: `spring-boot:run.` (com ponto) falha; o `npm` precisa rodar dentro de `frontend`.
+- Ainda faltam: anúncios reais (1 de 6), tirar a demonstração (passo 3), verificações e commit (passo 6) e
+  **gravar o vídeo da entrega** (ver "Entrega final: vídeo").
+
 ## Tarefas para o Claude Code (nesta ordem)
 
 0. **Ambiente.** `git checkout main` e `git pull`. Conferir que o `.env` na raiz tem os quatro campos preenchidos
