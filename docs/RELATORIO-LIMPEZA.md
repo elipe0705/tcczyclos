@@ -71,6 +71,42 @@ Para usar o site, deixar três terminais abertos:
   `demo_bruno` (ativas), `zyclos_teste1` e `zyclos_teste2` (desativadas).
 - Segurança: a troca da senha do banco e do `ZYCLOS_JWT_SECRET` (item 0 abaixo) ainda não foi confirmada.
 
+## Onde paramos em 06/11/2026, à noite (PC de casa)
+
+PC de casa: projeto em `C:\Users\GTECH ELIPÊ\tcczyclos`, na `main` atualizada, com `.env` na raiz (a senha do
+banco foi corrigida e a API sobe). `git status` limpo.
+
+Feito hoje à noite (já na `main`):
+- **Site pelo IP da rede local** (commit `a39887f`): sem `VITE_API_URL`, o site chama a API na porta 8080 do
+  mesmo endereço em que foi aberto (`localhost` ou o IP do PC, ex.: `192.168.15.6`); a API aceita (CORS) origens
+  `localhost`, `127.0.0.1`, `192.168.*`, `10.*` e `172.*` nas portas 5173/3000/8686. Não criar
+  `frontend\.env` com `VITE_API_URL=localhost`: isso força o endereço antigo.
+- **Site por túnel para outra rede** (commits `c0c34ac` e `0b7b9c9`): o Vite aceita `*.trycloudflare.com` e
+  repassa `/api` para `localhost:8080` sem o cabeçalho `Origin` (senão o login dava 403). Aberto por um
+  endereço com nome, o site chama `/api/v1` no próprio link. Testado: carregou e o login funcionou.
+
+Como mostrar o site para quem está em outra rede:
+1. Terminal 1, na raiz: `.\mvnw.cmd spring-boot:run` (esperar `Started ZyclosApplication`).
+2. Terminal 2, em `frontend`: `npm run dev`.
+3. Terminal 3: `npx cloudflared tunnel --url http://localhost:5173` e mandar o link
+   `https://....trycloudflare.com` que aparece no quadro (só no privado).
+4. Os três terminais e o PC ficam ligados enquanto usam; reiniciar o túnel gera um link novo. Fechar com Ctrl+C.
+
+Erros vistos e a causa:
+- "Não foi possível conectar" abrindo por `192.168.15.6:5173`: CORS antigo (corrigido em `a39887f`).
+- "Erro 403 ao acessar /api/v1/usuarios/login" pelo túnel: `Origin` repassado (corrigido em `0b7b9c9`).
+- "Blocked request. This host is not allowed": site rodando na versão antiga (`git pull` e reiniciar o site).
+- `password authentication failed`: `DB_PASSWORD` errada no `.env`.
+- `jdbcUrl, ${DB_URL}`: `.env` ausente na pasta do projeto (na escola o perfil pode virar `rm99692.FIEB.000`).
+- Login falhando: conferir o e-mail digitado (`gmail.com`, não `gmal.com`).
+
+Falta:
+1. **Gravar o vídeo da entrega** (roteiro em "Entrega final: vídeo").
+2. Anúncios reais (hoje 1 real e 10 de demonstração). Com 6+ reais, tirar a demonstração (passo 3).
+3. Confirmar o texto do rodapé ("Técnico em Informática, ITB Belval").
+4. Depois da entrega: trocar a senha do banco e o `ZYCLOS_JWT_SECRET`, e a senha da conta `elipe` (ela
+   apareceu em print durante os testes).
+
 ## Onde paramos em 06/11/2026, à tarde (para terminar em casa)
 
 Já está na `main` e no Supabase (não refazer):
