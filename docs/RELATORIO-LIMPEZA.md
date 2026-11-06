@@ -71,6 +71,32 @@ Para usar o site, deixar três terminais abertos:
   `demo_bruno` (ativas), `zyclos_teste1` e `zyclos_teste2` (desativadas).
 - Segurança: a troca da senha do banco e do `ZYCLOS_JWT_SECRET` (item 0 abaixo) ainda não foi confirmada.
 
+## Preparação para gravar o vídeo (06/11/2026, noite)
+
+Ensaio feito pelo Claude do Chrome com a conta ADMIN: os 4 passos do roteiro funcionaram (Sobre; Início →
+Anúncios → detalhe → Mensagens → Trocas; CRUD de categoria conferido no Supabase; Dashboard, Denúncias e
+Relatórios). A categoria de teste foi apagada (por isso a próxima categoria criada terá id 7).
+
+Preparado no Supabase / pelo site:
+- Conversa real sobre o "Tênis Asics GEL-NYC": a conta ADMIN mandou "Tenho interesse" e a conta `elipe`
+  respondeu. As notificações dos dois lados apareceram.
+- Nome de exibição da conta ADMIN (`elipe07.`) agora é **"Equipe ZYCLOS"** (para não parecer a mesma pessoa
+  dos dois lados da conversa). Notificações gravadas com o nome antigo foram ajustadas. Para o cabeçalho
+  mostrar o nome novo, sair e entrar de novo nessa conta.
+- Decisões do dono: rodapé "Técnico em Informática, ITB Belval" está certo; os anúncios de demonstração
+  ficam no catálogo para a gravação, avisando no vídeo que são exemplos.
+- A única proposta de troca é de `elipe` para `demo_bruno` (por isso a aba Trocas da conta ADMIN fica vazia).
+  A denúncia existente é de contas de teste antigas: no vídeo, usar em Denúncias → "Analisar" → status
+  Rejeitada, resposta "Denúncia de teste do sistema" (mostra a moderação sem inventar denúncia).
+
+Para gravar, deixar abertos: aba 1 com a conta ADMIN, aba 2 com `elipe` (os dois logins sem "Lembrar de mim",
+senão as abas dividem a mesma conta) e o Supabase em Table Editor → `categoria`. Ordem: Sobre → site
+(Anúncios, Tênis Asics, Mensagens, Notificações) → CRUD de categorias com o Supabase → admin (Dashboard,
+Usuários, Denúncias, Relatórios) → fechamento com a ODS 12.
+
+Falta: **gravar o vídeo**; depois da entrega, trocar a senha do banco, o `ZYCLOS_JWT_SECRET` e a senha da conta
+`elipe`.
+
 ## Onde paramos em 06/11/2026, à noite (PC de casa)
 
 PC de casa: projeto em `C:\Users\GTECH ELIPÊ\tcczyclos`, na `main` atualizada, com `.env` na raiz (a senha do
