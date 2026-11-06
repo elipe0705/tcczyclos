@@ -7,13 +7,20 @@ sem falar, e pare alguns segundos em cada tela (a narração precisa de tempo).
 | Bloco | Quem grava | Duração do vídeo |
 | --- | --- | --- |
 | A. Slide de abertura | **Paty** | ~1 min 30 s |
+| B. Tour pelo site | **Japa (Guilherme)** | ~2 min 30 s |
+| C. Área administrativa | **Japa (Guilherme)** | ~1 min 30 s |
+| D. CRUD com o banco de dados (a parte mais importante e mais difícil) | **Felipe** | ~2 min |
+| E. Encerramento | **Paty** | ~20 s |
+
+--- | --- | --- |
+| A. Slide de abertura | **Paty** | ~1 min 30 s |
 | B. Tour pelo site | **Felipe** | ~2 min 30 s |
 | C. CRUD com o banco + painel admin | **Japa (Guilherme)** | ~3 min |
 | D. Encerramento | **Paty** | ~20 s |
 
 ---
 
-## Preparação (Felipe e Japa, antes de gravar)
+## Preparação (Japa e Felipe, antes de gravar)
 
 1. API e site rodando: `.\mvnw.cmd spring-boot:run` na raiz e `npm run dev` em `frontend`.
 2. **Aba 1:** entrar como **Equipe ZYCLOS** (conta ADMIN `elipe07.`). Se o cabeçalho ainda mostrar o nome
@@ -41,7 +48,7 @@ Gravar o slide em tela cheia (modo apresentação), trocando de slide só quando
 
 ---
 
-## Bloco B — Tour pelo site (Felipe, aba 2: Luiz Felipe)
+## Bloco B — Tour pelo site (Japa, aba 2: Luiz Felipe)
 
 | Cena | Ação | Deixar na tela |
 | --- | --- | --- |
@@ -60,48 +67,70 @@ Gravar o slide em tela cheia (modo apresentação), trocando de slide só quando
 
 Não clicar em "Tenho interesse", "Propor troca" nem "Conversar", para não criar conversas ou propostas novas.
 
+Terminar a cena B12 parado, para emendar com o bloco C.
+
 ---
 
-## Bloco C — CRUD com o banco + painel admin (Japa, aba 1: Equipe ZYCLOS + aba 3: Supabase)
+## Bloco C — Área administrativa (Japa, aba 1: Equipe ZYCLOS)
+
+Mostra o painel que só a conta de administrador vê. **Não mexer em Categorias aqui**: o CRUD é o bloco D.
 
 | Cena | Ação | Deixar na tela |
 | --- | --- | --- |
-| C1 | Na aba 1, menu do usuário → **Painel administrativo** | 4 s |
-| C2 | Menu lateral → **Categorias**. Mostrar a lista (5 categorias) | 5 s |
-| C3 | Ir à **aba 3 (Supabase)**, tabela `categoria`, mostrando as mesmas 5 linhas | 5 s |
-| **Criar** | | |
-| C4 | Aba 1: **Adicionar categoria** → digitar o nome **Moda Praia** devagar (o slug se preenche sozinho) | 6 s |
-| C5 | Clicar em **Criar categoria**. Mostrar o aviso "Categoria criada." e a linha nova na lista | 4 s |
-| C6 | Aba 3: clicar em **Refresh** no Supabase. Passar o mouse sobre a linha **Moda Praia** | 6 s |
-| **Alterar** | | |
-| C7 | Aba 1: **Editar** na linha Moda Praia → escrever a descrição "Biquínis, sungas e saídas de praia" → **Salvar alterações** | 8 s |
-| C8 | Aba 3: **Refresh**. Mostrar a descrição nova na coluna `descricao` | 6 s |
-| **Excluir** | | |
-| C9 | Aba 1: **Excluir** na linha Moda Praia → confirmar **Excluir** na janela | 5 s |
-| C10 | Aba 3: **Refresh**. Mostrar que voltaram a ser só 5 linhas | 6 s |
-| **Painel admin** | | |
-| C11 | Aba 1: **Dashboard**. Mostrar os 4 números, o gráfico e a atividade recente | 10 s |
-| C12 | **Anúncios** (menu lateral). Rolar a tabela devagar | 6 s |
-| C13 | **Usuários**. Rolar a tabela | 6 s |
-| C14 | **Denúncias** → **Analisar** → status **Rejeitada** → resposta "Denúncia de teste do sistema" → **Salvar análise**. Mostrar o selo do status mudando | 12 s |
-| C15 | **Relatórios**. Clicar em **7 dias**, **30 dias** e **Tudo**, parando em cada um | 12 s |
-
-Se errar no CRUD (ex.: digitar errado), excluir a categoria criada e gravar o bloco C de novo, do C2.
+| C1 | Na aba 1 (cabeçalho mostrando **Equipe ZYCLOS**), abrir o menu do usuário e passar o mouse em **Painel administrativo** | 3 s |
+| C2 | Clicar em **Painel administrativo**. Mostrar o menu lateral e o nome no topo | 4 s |
+| C3 | **Dashboard**: parar nos 4 números (anúncios, usuários, trocas, denúncias) | 6 s |
+| C4 | Rolar até o gráfico **Crescimento da comunidade** e passar o mouse sobre a barra do mês atual | 6 s |
+| C5 | Mostrar **Atividade recente** e a tabela **Anúncios recentes** | 6 s |
+| C6 | Menu lateral → **Anúncios**. Rolar a tabela; digitar "tênis" na busca e apagar | 8 s |
+| C7 | Menu lateral → **Usuários**. Rolar a tabela (nome, e-mail, tipo, status) | 6 s |
+| C8 | Menu lateral → **Denúncias** → **Analisar** → status **Rejeitada** → resposta "Denúncia de teste do sistema" → **Salvar análise**. Mostrar o selo do status mudando | 12 s |
+| C9 | Menu lateral → **Relatórios**. Clicar em **7 dias**, **30 dias**, **12 meses** e **Tudo**, parando em cada um | 14 s |
+| C10 | Menu lateral → **Categorias**. Só mostrar a lista e parar (gancho para o bloco D) | 4 s |
 
 ---
 
-## Bloco D — Encerramento (Paty)
+## Bloco D — CRUD com o banco de dados (Felipe, aba 1: Equipe ZYCLOS + aba 3: Supabase)
+
+É o item que o professor exige: cadastrar pela página e mostrar no SQL, alterar e mostrar, excluir e mostrar.
+Antes de começar: aba 1 em **Painel administrativo → Categorias**; aba 3 no Supabase, tabela `categoria`.
+Ensaiar uma vez sem gravar (e excluir a categoria do ensaio).
+
+| Cena | Ação | Deixar na tela |
+| --- | --- | --- |
+| D1 | Aba 1: lista de categorias (5 linhas) | 4 s |
+| D2 | Aba 3 (Supabase): a tabela `categoria` com as mesmas 5 linhas | 5 s |
+| **Criar** | | |
+| D3 | Aba 1: **Adicionar categoria** → digitar **Moda Praia** devagar (o slug se preenche sozinho) | 6 s |
+| D4 | Clicar em **Criar categoria**. Mostrar o aviso "Categoria criada." e a linha nova na lista | 4 s |
+| D5 | Aba 3: **Refresh**. Parar o mouse na linha **Moda Praia** (id, nome, slug) | 7 s |
+| **Alterar** | | |
+| D6 | Aba 1: **Editar** na linha Moda Praia → descrição "Biquínis, sungas e saídas de praia" → **Salvar alterações** | 8 s |
+| D7 | Aba 3: **Refresh**. Parar o mouse na coluna `descricao` com o texto novo | 7 s |
+| **Desativar / ativar (opcional, mostra outro tipo de alteração)** | | |
+| D8 | Aba 1: **Desativar** → o status vira **Inativa**. Aba 3: Refresh, `cod_status` = false. Voltar e clicar **Ativar** | 10 s |
+| **Excluir** | | |
+| D9 | Aba 1: **Excluir** na linha Moda Praia → confirmar **Excluir** na janela. Mostrar o aviso "Categoria excluída." | 5 s |
+| D10 | Aba 3: **Refresh**. Mostrar que voltaram a ser só 5 linhas | 7 s |
+| **Bônus: proteção do banco** | | |
+| D11 | Aba 1: **Excluir** em **Calçados** → confirmar. Mostrar a mensagem de erro (não exclui categoria com anúncios) | 6 s |
+
+Se errar no meio: excluir a categoria criada e gravar o bloco D de novo, desde o D1.
+
+---
+
+## Bloco E — Encerramento (Paty)
 
 | Cena | O que mostrar | Tempo na tela |
 | --- | --- | --- |
-| D1 | Página inicial do site (ou slide final) com a frase "Dar uma nova vida para uma peça também é cuidar do planeta" | 10 s |
-| D2 | Slide final: logo ZYCLOS, ODS 12 e nomes do grupo | 10 s |
+| E1 | Página inicial do site (ou slide final) com a frase "Dar uma nova vida para uma peça também é cuidar do planeta" | 10 s |
+| E2 | Slide final: logo ZYCLOS, ODS 12 e nomes do grupo | 10 s |
 
 ---
 
 ## Montagem (Clipchamp ou CapCut)
 
-1. Ordem: A → B → C → D.
+1. Ordem: A → B → C → D → E.
 2. Cortar o início e o fim de cada gravação (quando aparece o Win+G).
 3. Colocar a narração por cima e ajustar: onde a fala for mais longa, deixar a cena parada mais tempo
    (congelar o quadro); onde for mais curta, acelerar a cena em 1,25x a 1,5x.
