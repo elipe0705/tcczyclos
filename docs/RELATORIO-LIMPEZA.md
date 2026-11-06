@@ -61,11 +61,12 @@ Para usar o site, deixar três terminais abertos:
 3. o `claude` (Claude Code). No Windows ele fica em `%USERPROFILE%\.local\bin`; se `claude` não for reconhecido,
    adicionar essa pasta ao PATH do usuário ou rodar `& "$env:USERPROFILE\.local\bin\claude.exe"`.
 
-## Situação em 06/11/2026 (conferida direto no Supabase)
+## Situação em 06/11/2026, à tarde (conferida direto no Supabase)
 
-O plano de 03/11 ainda não foi feito:
-- Catálogo: 10 anúncios ativos, **todos de demonstração** (`demo_anaclara` e `demo_bruno`); 0 anúncios reais.
-- Senhas: 1 conta ainda sem hash BCrypt (`elipe`, id 1), então a migração temporária continua no código.
+- Catálogo: 10 anúncios de demonstração ativos + **1 anúncio real** ("Tenis Asic GEL NYC", conta `elipe`).
+  Faltam 5 reais para chegar a 6 e poder tirar a demonstração (passo 3).
+- Senhas: **0 contas sem hash** (a conta `elipe` entrou). **Passo 4 feito**: a migração temporária foi removida
+  do `UsuarioService`; senha gravada que não seja hash BCrypt nunca libera o login. `mvnw test` passou.
 - Contas: `elipe` (USUARIO), `elipe07.` (ADMIN), `elipe078765.` (USUARIO, id 5, nova), `demo_anaclara` e
   `demo_bruno` (ativas), `zyclos_teste1` e `zyclos_teste2` (desativadas).
 - Segurança: a troca da senha do banco e do `ZYCLOS_JWT_SECRET` (item 0 abaixo) ainda não foi confirmada.
@@ -93,9 +94,8 @@ O plano de 03/11 ainda não foi feito:
    anúncios reais. Se o arquivo não existir neste PC (está no `.gitignore`), desativar direto:
    `update anuncio set status = 'INATIVO' where vendedor_id in (select id from usuario where username like 'demo\_%');`
    `update usuario set cod_status = false where username like 'demo\_%';`
-4. **Migração de senhas.** O dono entra uma vez no site com `elipe` (ghostguedres@gmail.com). Rodar a consulta
-   rígida de "Decisões pendentes"; se der 0, remover a "MIGRAÇÃO TEMPORÁRIA" de
-   `UsuarioService.conferirCredenciais` (senha que não é hash = login recusado). Rodar `.\mvnw.cmd test` e compile.
+4. ~~**Migração de senhas.**~~ Feito em 06/11 (consulta rígida deu 0; trecho removido de
+   `UsuarioService.conferirCredenciais`).
 5. **Teste manual** com `docs/ROTEIRO-TESTES.md` (2 contas comuns + ADMIN `elipe07.`, API ligada e desligada).
 6. **Fechar:** `npm run lint`, `npm run build`, `.\mvnw.cmd -DskipTests compile`; commit e push na `main`;
    atualizar este relatório.
@@ -111,7 +111,7 @@ front só em JS/JSX; sem novas dependências; não mudar o schema do banco.
 - 5.5 feito: apagada `frontend/.lovable/plan/` (três planos antigos do front 100% fictício); mantido
   `.lovable/project.json`.
 - 5.9 show-sql: feito (`false` em `application.properties`).
-- 5.9 migração de senhas: **mantida**. A consulta abaixo deu 1 em 06/11 (a conta `elipe`, id 1). Ela segue o formato que o
+- 5.9 migração de senhas: **removida em 06/11** (a consulta abaixo deu 0). Ela segue o formato que o
   código aceita (`$2a$`, `$2b$` ou `$2y$` + custo + 53 caracteres); a antiga `not like '$2%'` era mais frouxa:
   `select count(*) from usuario where senha is null or senha !~ '^\$2[aby]\$[0-9]{2}\$[./A-Za-z0-9]{53}$';`
   Quando der 0 (depois do passo 2 acima), apagar o trecho "MIGRAÇÃO TEMPORÁRIA" de
@@ -126,6 +126,17 @@ front só em JS/JSX; sem novas dependências; não mudar o schema do banco.
   Teste automatizado sem banco: `.\mvnw.cmd test` (`PropostaTrocaServiceTest`, 7 casos).
 - `.gitattributes` com `eol=lf`: no Windows com `core.autocrlf=true` o lint acusava milhares de `Delete ␍`.
   O repositório já era todo LF; nenhum arquivo mudou de conteúdo.
+
+## Entrega final: vídeo (prazo 06/11/2026)
+
+Pedido do professor: vídeo curto mostrando (1) objetivo, justificativa e ODS (ODS 12 — Consumo e Produção
+Responsáveis), de preferência pelas páginas do site; (2) o site e suas páginas; (3) o CRUD funcionando com o banco:
+cadastrar e mostrar o registro no SQL, alterar e mostrar, deletar.
+- Para o CRUD, usar `/admin/categorias` (conta ADMIN `elipe07.`) com o Supabase (Table Editor → `categoria`) aberto
+  ao lado: criar → mostrar a linha; editar → mostrar a mudança; excluir → mostrar que a linha sumiu (exclusão física).
+  O "excluir" de anúncio é lógico (status `INATIVO`), de propósito, para não perder conversas e favoritos.
+- Se os anúncios de demonstração ainda estiverem no ar, dizer no vídeo que são dados de exemplo.
+- Opcional: página `/sobre` com objetivo, justificativa e ODS 12 (textos do TCC, não inventar) e link no rodapé.
 
 ## Roteiro de teste manual
 

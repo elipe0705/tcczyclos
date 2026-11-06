@@ -206,20 +206,12 @@ public class UsuarioService {
         if (!usuario.isCodStatus() || senha == null) {
             throw new IllegalArgumentException("E-mail ou senha inválidos");
         }
+        // Toda senha gravada é hash BCrypt; qualquer outro valor no banco nunca libera o login
         String senhaGravada = usuario.getSenha();
-        if (isHashBCrypt(senhaGravada)) {
-            if (!passwordEncoder.matches(senha, senhaGravada)) {
-                throw new IllegalArgumentException("E-mail ou senha inválidos");
-            }
-            return usuario;
-        }
-        // MIGRAÇÃO TEMPORÁRIA: contas criadas antes do BCrypt guardam a senha em texto puro.
-        // Se a senha confere, troca pelo hash e salva. Remover quando nenhuma conta tiver senha em texto puro.
-        if (!senhaGravada.equals(senha)) {
+        if (senhaGravada == null || !isHashBCrypt(senhaGravada) || !passwordEncoder.matches(senha, senhaGravada)) {
             throw new IllegalArgumentException("E-mail ou senha inválidos");
         }
-        usuario.setSenha(passwordEncoder.encode(senha));
-        return usuarioRepository.save(usuario);
+        return usuario;
     }
 
     private void verificarBloqueioLogin(String email) {
