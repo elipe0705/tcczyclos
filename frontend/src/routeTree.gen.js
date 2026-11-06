@@ -20,6 +20,7 @@ import { Route as LoginRouteImport } from "./routes/login";
 import { Route as MensagensRouteImport } from "./routes/mensagens";
 import { Route as NotificacoesRouteImport } from "./routes/notificacoes";
 import { Route as PerfilRouteImport } from "./routes/perfil";
+import { Route as SobreRouteImport } from "./routes/sobre";
 import { Route as TrocasRouteImport } from "./routes/trocas";
 import { Route as AdminIndexRouteImport } from "./routes/admin.index";
 import { Route as AdminAnunciosRouteImport } from "./routes/admin.anuncios";
@@ -86,6 +87,11 @@ const NotificacoesRoute = NotificacoesRouteImport.update({
 const PerfilRoute = PerfilRouteImport.update({
   id: "/perfil",
   path: "/perfil",
+  getParentRoute: () => rootRouteImport,
+});
+const SobreRoute = SobreRouteImport.update({
+  id: "/sobre",
+  path: "/sobre",
   getParentRoute: () => rootRouteImport,
 });
 const TrocasRoute = TrocasRouteImport.update({
@@ -186,6 +192,7 @@ const rootRouteChildren = {
   MensagensRoute: MensagensRoute,
   NotificacoesRoute: NotificacoesRoute,
   PerfilRoute: PerfilRouteWithChildren,
+  SobreRoute: SobreRoute,
   TrocasRoute: TrocasRoute,
   EditarAnuncioIdRoute: EditarAnuncioIdRoute,
 };

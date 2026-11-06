@@ -150,7 +150,8 @@ cadastrar e mostrar o registro no SQL, alterar e mostrar, deletar.
   ao lado: criar → mostrar a linha; editar → mostrar a mudança; excluir → mostrar que a linha sumiu (exclusão física).
   O "excluir" de anúncio é lógico (status `INATIVO`), de propósito, para não perder conversas e favoritos.
 - Se os anúncios de demonstração ainda estiverem no ar, dizer no vídeo que são dados de exemplo.
-- Opcional: página `/sobre` com objetivo, justificativa e ODS 12 (textos do TCC, não inventar) e link no rodapé.
+- Página `/sobre` criada (link no menu e no rodapé) com objetivo, justificativa, ODS 12 e "como funciona". Os textos
+  ficam no topo de `frontend/src/components/zyclos/about.jsx`; trocar pelo texto oficial do TCC se for diferente.
 
 ## Roteiro de teste manual
 

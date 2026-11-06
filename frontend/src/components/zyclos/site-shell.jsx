@@ -32,6 +32,7 @@ const links = [
   ["/anuncios", "Anúncios"],
   ["/trocas", "Trocas"],
   ["/mensagens", "Mensagens"],
+  ["/sobre", "Sobre"],
 ];
 export function SiteShell({ children }) {
   const [open, setOpen] = useState(false);
@@ -281,6 +282,7 @@ export function SiteShell({ children }) {
             <div>
               <p className="font-bold">ZYCLOS</p>
               <div className="mt-3 grid gap-2 text-sm text-primary-foreground/70">
+                <Link to="/sobre">Sobre o ZYCLOS</Link>
                 <Link to="/configuracoes">Configurações</Link>
                 {user?.type === "ADMIN" && <Link to="/admin">Área administrativa</Link>}
               </div>
