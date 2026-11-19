@@ -4,7 +4,7 @@ Site da ZYCLOS, marketplace de moda circular (comprar, vender e trocar roupas), 
 React com TanStack Start, TanStack Router e React Query, em JavaScript/JSX. Foi criado no
 [Lovable](https://lovable.dev) e está conectado a ele.
 
-Todos os dados vêm da API Spring Boot que fica na raiz deste repositório: se a API estiver
+Todos os dados vêm da API Spring Boot que fica na pasta `backend/` deste repositório: se a API estiver
 desligada, as telas mostram uma mensagem de erro com "Tentar novamente" (não existem dados de
 demonstração).
 

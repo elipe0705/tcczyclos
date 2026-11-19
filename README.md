@@ -5,6 +5,13 @@ Backend REST da plataforma de moda circular ZYCLOS (TCC), feito em Spring Boot s
 
 O front-end (React + TanStack Start, feito no Lovable) fica na pasta `frontend/` e consome esta API.
 
+```
+tcczyclos/
+├── backend/    API Spring Boot (src/, pom.xml, mvnw, .env.example)
+├── frontend/   site React + Vite
+└── docs/       documentação, roteiros, SQL e requisições de teste
+```
+
 ## Como rodar tudo junto
 
 1. Suba o back-end (seção "Como rodar (Supabase)" abaixo). A API fica em `http://localhost:8080`.
@@ -54,6 +61,8 @@ a linha pelo e-mail e troque `tipo_usuario` para `ADMIN` (ou, no SQL Editor:
 
 ## Estrutura (MVC)
 
+Código em `backend/src/main/java/br/com/zyclos`:
+
 ```
 br.com.zyclos
 ├── config            CorsConfiguration (libera as portas 5173, 3000 e 8686)
@@ -70,7 +79,7 @@ Fluxo: Controller -> Service -> Repository -> Banco de Dados, com injeção de d
 
 O banco fica no Supabase (PostgreSQL), projeto `zyclos`, região São Paulo.
 
-1. Copie `.env.example` para `.env` (na raiz do repositório) e preencha:
+1. Na pasta `backend`, copie `.env.example` para `.env` (o arquivo fica em `backend/.env`) e preencha:
    - No painel do Supabase, abra o projeto `zyclos` → **Project Settings → Database → Reset database
      password**, gere uma senha e guarde num gerenciador de senhas.
    - Clique em **Connect** (topo do painel) → **Session pooler** e confira o **host**
@@ -83,13 +92,14 @@ O banco fica no Supabase (PostgreSQL), projeto `zyclos`, região São Paulo.
    - Use o **Session pooler** (porta 5432): o host direto `db.mhiagkmgzyroiglskwdo.supabase.co` só
      funciona em IPv6 no plano gratuito e costuma falhar em redes de casa e da escola. Só se a porta 5432
      estiver bloqueada, use a 6543 e acrescente `&prepareThreshold=0` ao final da URL.
-2. Rode a classe `ZyclosApplication` no IntelliJ (working directory: raiz do repositório) ou
-   `.\mvnw.cmd spring-boot:run`. A API sobe em `http://localhost:8080`.
+2. Rode a classe `ZyclosApplication` no IntelliJ (working directory: pasta `backend`) ou, no terminal,
+   `cd backend` e depois `.\mvnw.cmd spring-boot:run`. A API sobe em `http://localhost:8080`.
+   O `.env` é lido da pasta onde a API é iniciada, por isso ela precisa subir de dentro de `backend`.
 3. As tabelas já existem no Supabase. `docs/sql/zyclos_db_supabase.sql` é só documentação: **não executar**.
    (`spring.jpa.hibernate.ddl-auto=none`: o Hibernate nunca cria nem altera tabelas.)
 4. Projetos gratuitos do Supabase pausam após 7 dias sem uso. Antes de apresentar, abra o painel e clique
    em **Restore** se estiver pausado.
-5. ⚠️ Nunca commite o `.env`. Se a senha vazar, resete no painel (Project Settings → Database).
+5. ⚠️ Nunca commite o `backend/.env`. Se a senha vazar, resete no painel (Project Settings → Database).
 6. Testes e `mvn package` precisam do `.env` preenchido, porque o teste padrão do Spring conecta no banco.
    Sem ele, use `-DskipTests`.
 

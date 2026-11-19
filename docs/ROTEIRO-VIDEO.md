@@ -16,7 +16,7 @@ sem falar, e pare alguns segundos em cada tela (a narração precisa de tempo).
 
 ## Preparação (Japa e Felipe, antes de gravar)
 
-1. API e site rodando: `.\mvnw.cmd spring-boot:run` na raiz e `npm run dev` em `frontend`.
+1. API e site rodando: `.\mvnw.cmd spring-boot:run` em `backend` e `npm run dev` em `frontend`.
 2. **Aba 1:** entrar como **Equipe ZYCLOS** (conta ADMIN `elipe07.`). Se o cabeçalho ainda mostrar o nome
    antigo, sair e entrar de novo.
 3. **Aba 2:** entrar como **Luiz Felipe** (conta `elipe`). Nos dois logins, **sem** "Lembrar de mim".

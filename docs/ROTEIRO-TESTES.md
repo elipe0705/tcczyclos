@@ -4,7 +4,7 @@ Marque cada item ao testar. Se algo falhar, anote a tela, o que fez e a mensagem
 
 ## Antes de começar
 
-- API ligada na raiz: `.\mvnw.cmd spring-boot:run` (esperar `Started ZyclosApplication`).
+- API ligada na pasta `backend`: `.\mvnw.cmd spring-boot:run` (esperar `Started ZyclosApplication`).
 - Site ligado em `frontend/`: `npm run dev` e abrir `http://localhost:5173`.
 - Contas: **A** e **B** (usuários comuns) e **ADMIN** (`lipinho070509@gmail.com`).
   Este roteiro grava dados reais no Supabase: use só contas autorizadas e apague depois o que for de teste.

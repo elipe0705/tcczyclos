@@ -4,6 +4,11 @@ Contexto para quem continuar: TCC ZYCLOS, marketplace de moda circular. Monorepo
 na raiz (`br.com.zyclos`, Supabase PostgreSQL, JWT) e front-end React (TanStack Start + React Query, só JS/JSX) em
 `frontend/`, conectado ao Lovable. Objetivo: tirar todo dado fictício/simulado do site antes da entrega.
 
+> **Atualização (estrutura nova):** a API saiu da raiz e agora fica em `backend/` (`src/`, `pom.xml`, `mvnw`,
+> `.env.example`). O `.env` passa a ficar em `backend/.env`, e a API sobe de dentro dessa pasta:
+> `cd backend` e depois `.\mvnw.cmd spring-boot:run`. Onde este relatório fala em "raiz" para a API ou o `.env`,
+> leia `backend/`.
+
 ## Onde está o código
 
 - Todo o trabalho está na `main` (é a que sincroniza com o Lovable). Em 30/10/2026 a branch
@@ -56,7 +61,7 @@ Resolvido: o site mostrava "Não foi possível conectar ao servidor do ZYCLOS" p
   `http://localhost:8080/api/v1` e roda na 5173 (liberada no CORS).
 
 Para usar o site, deixar três terminais abertos:
-1. raiz do projeto: `.\mvnw.cmd spring-boot:run` (se fechar, a API cai);
+1. pasta `backend`: `.\mvnw.cmd spring-boot:run` (se fechar, a API cai);
 2. `frontend`: `npm run dev` e abrir `http://localhost:5173`;
 3. o `claude` (Claude Code). No Windows ele fica em `%USERPROFILE%\.local\bin`; se `claude` não for reconhecido,
    adicionar essa pasta ao PATH do usuário ou rodar `& "$env:USERPROFILE\.local\bin\claude.exe"`.
@@ -130,7 +135,7 @@ Feito hoje à noite (já na `main`):
   endereço com nome, o site chama `/api/v1` no próprio link. Testado: carregou e o login funcionou.
 
 Como mostrar o site para quem está em outra rede:
-1. Terminal 1, na raiz: `.\mvnw.cmd spring-boot:run` (esperar `Started ZyclosApplication`).
+1. Terminal 1, em `backend`: `.\mvnw.cmd spring-boot:run` (esperar `Started ZyclosApplication`).
 2. Terminal 2, em `frontend`: `npm run dev`.
 3. Terminal 3: `npx cloudflared tunnel --url http://localhost:5173` e mandar o link
    `https://....trycloudflare.com` que aparece no quadro (só no privado).
@@ -169,8 +174,8 @@ Falta:
 3. Anúncios reais: hoje 1 real e 10 de demonstração. Com 6+ reais, fazer o passo 3 (tirar a demonstração).
 4. Depois da entrega: trocar a senha do banco e o `ZYCLOS_JWT_SECRET` e atualizar o `.env` de cada PC.
 
-Em casa: `git pull` na pasta do projeto, conferir o `.env` na raiz (não vem pelo GitHub), `.\mvnw.cmd
-spring-boot:run` na raiz e `npm run dev` em `frontend`. Na escola, este PC usava
+Em casa: `git pull` na pasta do projeto, conferir o `backend/.env` (não vem pelo GitHub), `.\mvnw.cmd
+spring-boot:run` em `backend` e `npm run dev` em `frontend`. Na escola, este PC usava
 `C:\Users\rm99692.FIEB.000\tcczyclos` (o `.env` foi criado ali).
 
 ## Onde paramos em 06/11/2026, 11h (PC da escola, usuário `rm99692.FIEB`)
@@ -189,7 +194,7 @@ spring-boot:run` na raiz e `npm run dev` em `frontend`. Na escola, este PC usava
 
 ## Tarefas para o Claude Code (nesta ordem)
 
-0. **Ambiente.** `git checkout main` e `git pull`. Conferir que o `.env` na raiz tem os quatro campos preenchidos
+0. **Ambiente.** `git checkout main` e `git pull`. Conferir que o `backend/.env` tem os quatro campos preenchidos
    (sem mostrar os valores no terminal). Se o dono for trocar os segredos agora:
    - senha do banco: Supabase → projeto `zyclos` → Project Settings → Database → Reset database password;
      colar em `DB_PASSWORD`;
@@ -199,7 +204,7 @@ spring-boot:run` na raiz e `npm run dev` em `frontend`. Na escola, este PC usava
      `$b = New-Object byte[] 48; [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($b); [Convert]::ToBase64String($b)`
    - O Claude Code não tem permissão de escrever no `.env`: o dono cola os valores com `notepad .env`.
      Todo PC que rodar a API precisa do mesmo `.env` (passar por canal privado, nunca pelo GitHub).
-1. **Subir tudo.** `.\mvnw.cmd spring-boot:run` na raiz (esperar `Started ZyclosApplication`) e `npm run dev` em
+1. **Subir tudo.** `.\mvnw.cmd spring-boot:run` em `backend` (esperar `Started ZyclosApplication`) e `npm run dev` em
    `frontend` (rodar `npm ci` antes se faltar `node_modules`). Testar `http://localhost:8080/api/v1/categorias`
    (200 com 5 categorias) e `http://localhost:5173`.
 2. **Anúncios reais (o grupo faz pelo site).** Cada integrante entra com a própria conta e cadastra 2 ou 3 peças
